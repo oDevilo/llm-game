@@ -24,15 +24,24 @@ public class GameInitStep implements Step {
         // 获取角色池
         List<Player.Role> rolePool = new ArrayList<>(rolePool(playerNumber));
         // 分配角色
+        List<Integer> availableNumbers = new ArrayList<>();
         Random random = new Random();
         for (int i = 0; i < playerNumber; i++) {
             int p = random.nextInt(rolePool.size());
             Player.Role removed = rolePool.remove(p);
-            AIPlayer player = new AIPlayer(game.getId(), i + 1, removed, game.getMessageHistory());
+            int number = i + 1;
+            availableNumbers.add(number);
+            AIPlayer player = new AIPlayer(game.getId(), number, removed, game.getMessageHistory());
             players.add(player);
         }
         for (Player player : players) {
             player.init(players);
+        }
+        // 确定队长号码池
+        for (int i = 0; i < playerNumber; i++) {
+            int p = random.nextInt(availableNumbers.size());
+            Integer remove = availableNumbers.remove(p);
+            game.getCaptainOrder().add(remove);
         }
         return new Result();
     }

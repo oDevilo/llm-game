@@ -13,7 +13,7 @@ public class Common {
         return OpenAiChatModel.builder()
             .baseUrl("https://dashscope.aliyuncs.com/compatible-mode/v1")
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName("qwen-plus-latest")
+            .modelName("qwen-plus-2025-07-28")
             .temperature(0.0)
             .responseFormat("{\"type\": \"json_object\"}")
             .logRequests(true)

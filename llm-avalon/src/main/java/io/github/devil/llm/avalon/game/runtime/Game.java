@@ -32,6 +32,14 @@ public class Game {
      */
     private final List<Player> players;
     /**
+     * 队长顺序 存的是用户号码
+     */
+    private final List<Integer> captainOrder;
+    /**
+     * 如果 0 就选 captainOrder.get(0) 为队长
+     */
+    private int captainOrderPos;
+    /**
      * 历史回合的记录
      */
     private final List<Round> historyRounds;
@@ -48,12 +56,15 @@ public class Game {
      */
     private CampType winCamp;
 
-    public Game(String id, int playerNumber, MessageHistory messageHistory, List<Player> players, List<Round> historyRounds) {
+    public Game(String id, int playerNumber, MessageHistory messageHistory,
+                List<Player> players, List<Round> historyRounds, List<Integer> captainOrder, int captainOrderPos) {
         this.id = id;
         this.playerNumber = playerNumber;
         this.messageHistory = messageHistory;
         this.historyRounds = historyRounds;
         this.players = players;
+        this.captainOrder = captainOrder;
+        this.captainOrderPos = captainOrderPos;
     }
 
 

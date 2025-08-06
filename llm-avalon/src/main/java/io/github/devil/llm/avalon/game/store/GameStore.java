@@ -35,7 +35,12 @@ public class GameStore {
      * 历史轮次
      */
     private List<RoundStore> historyRounds;
+    /**
+     * 队长顺序
+     */
+    private List<Integer> captainOrder;
 
+    private int captainOrderPos;
 
     public static GameStore store(Game game) {
         GameStore store = new GameStore();
@@ -46,6 +51,8 @@ public class GameStore {
         store.setPlayerRoles(playerRoles);
         store.setMessages(MessageStore.store(game.getMessageHistory().messages()));
         store.setHistoryRounds(RoundStore.storeRounds(game.getHistoryRounds()));
+        store.setCaptainOrder(game.getCaptainOrder());
+        store.setCaptainOrderPos(game.getCaptainOrderPos());
         return store;
     }
 
@@ -59,7 +66,7 @@ public class GameStore {
             player.init(players);
         }
         return new Game(store.getId(), store.getPlayerNumber(),
-            messageHistory, players, historyRounds
+            messageHistory, players, historyRounds, store.captainOrder, store.captainOrderPos
         );
     }
 

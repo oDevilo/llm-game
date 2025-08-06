@@ -199,6 +199,7 @@ public abstract class MessageStore {
         private int captainNumber;
         private int teamNum;
         private Game.Round.Turn.Result result;
+        private int failNumber;
 
         @Override
         public String getType() {
@@ -207,7 +208,7 @@ public abstract class MessageStore {
 
         @Override
         public Message message() {
-            TurnEndMessage message = new TurnEndMessage(round, turn, captainNumber, teamNum, result);
+            TurnEndMessage message = new TurnEndMessage(round, turn, captainNumber, teamNum, result, failNumber);
             return message;
         }
     }
@@ -297,7 +298,9 @@ public abstract class MessageStore {
 
         private int number;
 
-        private String content;
+        private String thinking;
+
+        private String speak;
 
         @Override
         public String getType() {
@@ -307,7 +310,8 @@ public abstract class MessageStore {
         @Override
         public Message message() {
             PlayerChatMessage message = new PlayerChatMessage();
-            message.setContent(content);
+            message.setSpeak(speak);
+            message.setThinking(thinking);
             message.setNumber(number);
             return message;
         }

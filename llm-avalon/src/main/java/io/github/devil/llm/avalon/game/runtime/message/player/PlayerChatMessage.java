@@ -11,17 +11,20 @@ import lombok.EqualsAndHashCode;
 @Data
 public class PlayerChatMessage extends PlayerMessage {
 
-    private String content;
+    private String thinking;
+
+    private String speak;
 
     @Override
     public String text() {
-        return content;
+        return speak;
     }
 
     @Override
     public MessageStore store() {
         MessageStore.PlayerChatMessageStore store = new MessageStore.PlayerChatMessageStore();
-        store.setContent(content);
+        store.setSpeak(speak);
+        store.setThinking(thinking);
         store.setNumber(getNumber());
         return store;
     }

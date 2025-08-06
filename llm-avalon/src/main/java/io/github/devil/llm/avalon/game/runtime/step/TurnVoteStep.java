@@ -35,10 +35,10 @@ public class TurnVoteStep implements Step {
         // 车队投票
         vote(team);
         // 结果判定
+        int missionFailNum = (int) turn.getMissionResult().values().stream().filter(r -> !r).count();
         if (missionStart()) {
             // 出任务的人对任务进行投票
             mission(team);
-            long missionFailNum = turn.getMissionResult().values().stream().filter(r -> !r).count();
             if (missionFailNum > 0) {
                 turn.setResult(Game.Round.Turn.Result.MISSION_FAIL);
             } else {
@@ -49,7 +49,10 @@ public class TurnVoteStep implements Step {
             turn.setResult(Game.Round.Turn.Result.DRAWN);
         }
         // 当前回合结束
-        messageHistory.add(new TurnEndMessage(round.getRound(), turn.getTurn(), turn.getCaptainNumber(), round.getTeamNum(), turn.getResult()));
+        messageHistory.add(new TurnEndMessage(
+            round.getRound(), turn.getTurn(), turn.getCaptainNumber(), round.getTeamNum(),
+            turn.getResult(), missionFailNum
+        ));
         round.getHistoryTurns().add(turn);
         return new Result();
     }

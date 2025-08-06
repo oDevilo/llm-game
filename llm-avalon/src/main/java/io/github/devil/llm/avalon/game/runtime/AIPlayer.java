@@ -48,13 +48,12 @@ public class AIPlayer extends Player {
 
     @Override
     public String chat() {
-        String content = assistant.chat(messageHistory.lastHostMessage().prompt()).content();
+        String json = assistant.chat(messageHistory.lastHostMessage().prompt()).content();
+        json = LLMUtils.llmStringToJson(json);
 //        String json = json(assistant.chat(messageHistory.lastHostMessage().prompt()).content());
-//        PlayerChatMessage message = JacksonUtils.toType(json, PlayerChatMessage.class);
-        PlayerChatMessage message = new PlayerChatMessage();
-        message.setContent(content);
+        PlayerChatMessage message = JacksonUtils.toType(json, PlayerChatMessage.class);
         addMessage(message);
-        return message.getContent();
+        return message.getSpeak();
     }
 
     @Override

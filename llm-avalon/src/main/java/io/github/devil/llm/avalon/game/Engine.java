@@ -3,7 +3,6 @@ package io.github.devil.llm.avalon.game;
 import io.github.devil.llm.avalon.constants.CampType;
 import io.github.devil.llm.avalon.game.runtime.Game;
 import io.github.devil.llm.avalon.game.runtime.MessageHistory;
-import io.github.devil.llm.avalon.game.runtime.Player;
 import io.github.devil.llm.avalon.game.runtime.step.GameInitStep;
 import io.github.devil.llm.avalon.game.runtime.step.Step;
 import io.github.devil.llm.avalon.game.runtime.step.StepResult;
@@ -21,7 +20,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
 
 /**
  * @author Devil
@@ -38,7 +36,10 @@ public class Engine {
 //    public static ThreadLocal<List<StepResult>> STEP_RESULTS = new ThreadLocal<>();
 
     public static CampType start(String id, int playerNumber) {
-        Game game = new Game(id, playerNumber, new MessageHistory(new ArrayList<>()), new ArrayList<>(), new ArrayList<>());
+        Game game = new Game(
+            id, playerNumber, new MessageHistory(new ArrayList<>()),
+            new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), 0
+        );
         GAME.set(game);
         loop(new GameInitStep());
         return game.getWinCamp();
@@ -162,14 +163,14 @@ public class Engine {
 
     /**
      * 选择当前队长队长
+     * @return 队长的号码
      */
     private static int electCaptain() {
-        // todo 优化---应该有个池子每人轮到一次，每个人都轮过后再重新轮
         Game game = game();
-        List<Player> players = game.getPlayers();
-        Random random = new Random();
-        int i = random.nextInt(players.size());
-        return players.get(i).getNumber();
+        int captainOrderPos = game.getCaptainOrderPos();
+        Integer number = game.getCaptainOrder().get(captainOrderPos % game.getPlayerNumber());
+        game.setCaptainOrderPos(captainOrderPos + 1);
+        return number;
     }
 
     /**

@@ -16,6 +16,7 @@ public class TurnEndMessage extends HostMessage {
     private final int captainNumber;
     private final int teamNum;
     private final Game.Round.Turn.Result result;
+    private final int failNumber;
 
     private final String textTemplate = """
         当前是第{{round}}轮的第{{turn}}回合，本回合最终结果为{{result}}。
@@ -26,25 +27,46 @@ public class TurnEndMessage extends HostMessage {
         当前是第{{round}}轮的第{{turn}}回合，本回合最终结果为{{result}}。
         """;
 
-    public TurnEndMessage(int round, int turn, int captainNumber, int teamNum, Game.Round.Turn.Result result) {
+    private final String failTextTemplate = """
+        当前是第{{round}}轮的第{{turn}}回合，本回合最终结果为{{result}}，任务失败票数{{failNumber}}。
+        """;
+
+    private final String failPromptTemplate = """
+        当前是第{{round}}轮的第{{turn}}回合，本回合最终结果为{{result}}，任务失败票数{{failNumber}}。
+        """;
+
+    public TurnEndMessage(int round, int turn, int captainNumber, int teamNum, Game.Round.Turn.Result result, int failNumber) {
         this.round = round;
         this.turn = turn;
         this.captainNumber = captainNumber;
         this.teamNum = teamNum;
         this.result = result;
+        this.failNumber = failNumber;
     }
 
     public String prompt() {
-        return new PromptTemplate(promptTemplate).apply(
-            variables()
-        ).text();
+        if (failNumber > 0) {
+            return new PromptTemplate(failPromptTemplate).apply(
+                variables()
+            ).text();
+        } else {
+            return new PromptTemplate(promptTemplate).apply(
+                variables()
+            ).text();
+        }
     }
 
     @Override
     public String text() {
-        return new PromptTemplate(textTemplate).apply(
-            variables()
-        ).text();
+        if (failNumber > 0) {
+            return new PromptTemplate(failTextTemplate).apply(
+                variables()
+            ).text();
+        } else {
+            return new PromptTemplate(textTemplate).apply(
+                variables()
+            ).text();
+        }
     }
 
     private Map<String, Object> variables() {
@@ -53,7 +75,8 @@ public class TurnEndMessage extends HostMessage {
             "turn", turn,
             "captainNumber", captainNumber,
             "teamNum", teamNum,
-            "result", result
+            "result", result,
+            "failNumber", failNumber
         );
     }
 
@@ -65,6 +88,7 @@ public class TurnEndMessage extends HostMessage {
         store.setTurn(turn);
         store.setTeamNum(teamNum);
         store.setResult(result);
+        store.setFailNumber(failNumber);
         return store;
     }
 

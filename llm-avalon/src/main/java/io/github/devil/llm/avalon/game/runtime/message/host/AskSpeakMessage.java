@@ -19,6 +19,12 @@ public class AskSpeakMessage extends HostMessage {
     // PlayerChatMessage
     private final String promptTemplate = """
         下面请{{number}}号玩家发言
+        
+        # 返回格式
+        {
+            "thinking": "思考过程",
+            "speak": "发言内容",
+        }
         """;
 
     public AskSpeakMessage(int number) {

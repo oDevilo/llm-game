@@ -8,7 +8,7 @@ import io.github.devil.llm.avalon.game.Engine;
 public class Start {
 
     public static void main(String[] args) {
-        System.out.println(Engine.start("7", 7));
+        System.out.println(Engine.start("test", 6));
     }
 
 }
