@@ -5,7 +5,6 @@
 .gradle
 bin/
 tmp/
-*.bg
 *.tmp
 *.bak
 *.swp
