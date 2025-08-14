@@ -1,7 +1,10 @@
-package io.github.devil.llm.avalon.game;
+package io.github.devil.llm.avalon.game.service;
 
 import io.github.devil.llm.avalon.constants.CampType;
 import io.github.devil.llm.avalon.constants.PlayerRole;
+import io.github.devil.llm.avalon.game.DBCheckpointSaver;
+import io.github.devil.llm.avalon.game.GameState;
+import io.github.devil.llm.avalon.game.RoundState;
 import io.github.devil.llm.avalon.game.message.host.AskKillMessage;
 import io.github.devil.llm.avalon.game.message.host.AskSpeakMessage;
 import io.github.devil.llm.avalon.game.message.host.BeforeKillMessage;
@@ -22,7 +25,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.bsc.langgraph4j.action.AsyncNodeAction.node_async;
@@ -39,18 +44,20 @@ public class GameService {
     private RoundService roundService;
     @Resource
     private MessageService messageService;
+    @Resource
+    private PlayerService playerService;
 
     private CompiledGraph<GameState> graph;
 
     @PostConstruct
     public void init() throws GraphStateException {
         var graph = new StateGraph<>(GameState.SCHEMA, GameState::new)
-            .addNode(GameState.State.RUNNING.getState(), inRoundNode())
+            .addNode(GameState.State.MISSION_STEP.getState(), missionStepNode())
             .addNode(GameState.State.KILL_MERLIN.getState(), killMerlinNode())
             // 游戏开始
-            .addEdge(GameState.State.START.getState(), GameState.State.RUNNING.getState())
+            .addEdge(GameState.State.START.getState(), GameState.State.MISSION_STEP.getState())
             // 任务阶段结束
-            .addConditionalEdges(GameState.State.RUNNING.getState(), new AsyncEdgeAction<GameState>() {
+            .addConditionalEdges(GameState.State.MISSION_STEP.getState(), new AsyncEdgeAction<GameState>() {
                     @Override
                     public CompletableFuture<String> apply(GameState state) {
                         GameState.Game game = state.game();
@@ -58,20 +65,22 @@ public class GameService {
                         // 1. 任务结束 - 蓝色胜利 - 刺杀梅林
                         // 2. 任务结束 - 红色胜利 - 游戏结束
                         // 3. 任务没结束 - 开启新的一轮
-                        if (gameEnd(game)) {
+                        if (missionStepEnd(game)) {
                             if (CampType.BLUE == game.getMissionCamp()) {
                                 return completedFuture("to_kill");
                             } else {
                                 return completedFuture("red_win");
                             }
                         } else {
+                            RoundState.Round round = roundService.current(game.getId());
+                            roundService.create(game, round);
                             return completedFuture("next_round");
                         }
                     }
                 }, EdgeMappings.builder()
                     .to(GameState.State.KILL_MERLIN.getState(), "to_kill")
                     .to(GameState.State.END.getState(), "red_win")
-                    .to(GameState.State.RUNNING.getState(), "next_round")
+                    .to(GameState.State.MISSION_STEP.getState(), "next_round")
                     .build()
             )
             .addEdge(GameState.State.KILL_MERLIN.getState(), GameState.State.END.getState());
@@ -83,15 +92,23 @@ public class GameService {
 
     }
 
-    private AsyncNodeAction<GameState> inRoundNode() {
+    private AsyncNodeAction<GameState> missionStepNode() {
         return node_async(state -> {
-            RoundState.Round round = roundService.curentRound();
+            GameState.Game game = state.game();
+            RoundState.Round round = roundService.current(game.getId());
+            RunnableConfig config = RunnableConfig.builder()
+                .threadId(game.getId())
+                .streamMode(CompiledGraph.StreamMode.SNAPSHOTS)
+                .build();
             if (round == null) {
                 // 创建新的并执行
+                round = roundService.create(game, null);
+                roundService.invoke(round, config);
             } else if (RoundState.Result.NOT_END == round.getResult()) {
                 // 继续执行
+                roundService.invoke(round, config);
             } else {
-                // 交由后面判断
+                // round 结束了
             }
             return Map.of();
         });
@@ -101,7 +118,7 @@ public class GameService {
         return node_async(state -> {
             GameState.Game game = state.game();
             messageService.add(new BeforeKillMessage());
-            List<Player> players = players();
+            List<Player> players = game.getPlayers();
             List<Player> reds = players.stream()
                 .filter(p -> p.getRole().camp == CampType.RED)
                 .toList();
@@ -127,13 +144,13 @@ public class GameService {
     }
 
     /**
-     * 所有回合结束
+     * 所有任务结束
      */
-    private boolean gameEnd(GameState.Game game) {
+    private boolean missionStepEnd(GameState.Game game) {
         if (game.getMissionCamp() != null) {
             return true;
         }
-        List<RoundState.Round> historyRounds = new ArrayList<>(); // todo
+        List<RoundState.Round> historyRounds = roundService.historyRounds(game.getId());
         if (historyRounds.isEmpty()) {
             return false;
         }
@@ -169,8 +186,29 @@ public class GameService {
         return graph.invoke(GameState.from(game), config);
     }
 
-    private List<Player> players() {
-        return null; // todo
+    public GameState.Game create(int playerNumber) {
+        String id = "123"; // todo
+        List<Player> players = playerService.createPlayers(id, playerNumber);
+
+        // 分配角色
+        List<Integer> availableNumbers = players.stream()
+            .map(Player::getNumber)
+            .collect(Collectors.toList());
+        // 确定队长号码池
+        Random random = new Random();
+        List<Integer> captainOrder = new ArrayList<>();
+        for (int i = 0; i < playerNumber; i++) {
+            int p = random.nextInt(availableNumbers.size());
+            Integer remove = availableNumbers.remove(p);
+            captainOrder.add(remove);
+        }
+        GameState.Game game = new GameState.Game();
+        game.setId(id);
+        game.setPlayerNumber(playerNumber);
+        game.setCaptainOrderPos(0);
+        game.setCaptainOrder(captainOrder);
+        game.setPlayers(players);
+        return game;
     }
 
 }

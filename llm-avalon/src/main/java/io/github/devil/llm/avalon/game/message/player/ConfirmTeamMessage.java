@@ -3,23 +3,32 @@ package io.github.devil.llm.avalon.game.message.player;
 import io.github.devil.llm.avalon.game.message.PlayerMessage;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 import java.util.Set;
 
 /**
  * @author Devil
  */
-@EqualsAndHashCode(callSuper = true)
-@Data
-public class ConfirmTeamMessage extends PlayerMessage {
+@Getter
+public class ConfirmTeamMessage extends PlayerMessage<ConfirmTeamMessage.MessageData> {
 
-    private String content;
-
-    private Set<Integer> teamNumbers;
+    public ConfirmTeamMessage(MessageData data) {
+        super(data);
+    }
 
     @Override
     public String text() {
-        return content;
+        return data.content;
+    }
+
+    @EqualsAndHashCode(callSuper = true)
+    @Data
+    public static class MessageData extends PlayerData {
+
+        private String content;
+
+        private Set<Integer> teamNumbers;
     }
 
 }

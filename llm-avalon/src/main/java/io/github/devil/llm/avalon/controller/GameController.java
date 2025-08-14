@@ -16,9 +16,9 @@
 
 package io.github.devil.llm.avalon.controller;
 
-import io.github.devil.llm.avalon.game.GameService;
 import io.github.devil.llm.avalon.game.GameState;
-import io.github.devil.llm.avalon.game.MessageService;
+import io.github.devil.llm.avalon.game.service.GameService;
+import io.github.devil.llm.avalon.game.service.PlayerService;
 import io.github.devil.llm.avalon.utils.json.JacksonUtils;
 import org.bsc.langgraph4j.CompiledGraph;
 import org.bsc.langgraph4j.RunnableConfig;
@@ -36,7 +36,7 @@ public class GameController {
     @Resource
     private GameService gameService;
     @Resource
-    private MessageService messageService;
+    private PlayerService playerService;
 
     @RequestMapping("/api/v1/game/test")
     public void test() {
@@ -45,7 +45,7 @@ public class GameController {
             .threadId(id)
             .streamMode(CompiledGraph.StreamMode.SNAPSHOTS)
             .build();
-        GameState.Game game = GameState.Game.init(id, 5, messageService);
+        GameState.Game game = gameService.create(5);
         System.out.println(JacksonUtils.toJSONString(gameService.invoke(
             game, config
         )));

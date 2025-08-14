@@ -3,19 +3,28 @@ package io.github.devil.llm.avalon.game.message.player;
 import io.github.devil.llm.avalon.game.message.PlayerMessage;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 /**
  * @author Devil
  */
-@EqualsAndHashCode(callSuper = true)
-@Data
-public class MissionMessage extends PlayerMessage {
+@Getter
+public class MissionMessage extends PlayerMessage<MissionMessage.MessageData> {
 
-    private boolean success;
+    public MissionMessage(MessageData data) {
+        super(data);
+    }
 
     @Override
     public String text() {
-        return "" + success;
+        return "" + data.success;
+    }
+
+    @EqualsAndHashCode(callSuper = true)
+    @Data
+    public static class MessageData extends PlayerData {
+
+        private boolean success;
     }
 
 }

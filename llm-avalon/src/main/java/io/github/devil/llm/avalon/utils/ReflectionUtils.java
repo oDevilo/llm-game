@@ -31,7 +31,7 @@ public class ReflectionUtils {
 
     private final static Reflections REFLECTIONS = new Reflections(new ConfigurationBuilder()
         .forPackages(
-            "io.github.devil.llm.avalon.game.store"
+            "io.github.devil.llm.avalon.game"
         ) // jdk21 模块化后导致无法直接加载
     );
 

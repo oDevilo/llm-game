@@ -3,21 +3,29 @@ package io.github.devil.llm.avalon.game.message.player;
 import io.github.devil.llm.avalon.game.message.PlayerMessage;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 /**
  * @author Devil
  */
-@EqualsAndHashCode(callSuper = true)
-@Data
-public class PlayerChatMessage extends PlayerMessage {
+@Getter
+public class PlayerChatMessage extends PlayerMessage<PlayerChatMessage.MessageData> {
 
-    private String thinking;
-
-    private String speak;
+    public PlayerChatMessage(MessageData data) {
+        super(data);
+    }
 
     @Override
     public String text() {
-        return speak;
+        return data.speak;
     }
-    
+
+    @EqualsAndHashCode(callSuper = true)
+    @Data
+    public static class MessageData extends PlayerData {
+
+        private String thinking;
+
+        private String speak;
+    }
 }

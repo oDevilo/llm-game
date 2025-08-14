@@ -3,7 +3,6 @@ package io.github.devil.llm.avalon.game.player;
 import io.github.devil.llm.avalon.constants.CampType;
 import io.github.devil.llm.avalon.constants.PlayerRole;
 import io.github.devil.llm.avalon.constants.SpeakOrder;
-import io.github.devil.llm.avalon.game.MessageService;
 import io.github.devil.llm.avalon.game.message.player.ConfirmTeamMessage;
 import io.github.devil.llm.avalon.game.message.player.DraftTeamMessage;
 import io.github.devil.llm.avalon.game.message.player.KillResultMessage;
@@ -11,6 +10,7 @@ import io.github.devil.llm.avalon.game.message.player.MissionMessage;
 import io.github.devil.llm.avalon.game.message.player.PlayerChatMessage;
 import io.github.devil.llm.avalon.game.message.player.VoteMessage;
 import io.github.devil.llm.avalon.game.player.assistant.AssistantFactory;
+import io.github.devil.llm.avalon.game.service.MessageService;
 import io.github.devil.llm.avalon.llm.Assistant;
 import io.github.devil.llm.avalon.utils.LLMUtils;
 import io.github.devil.llm.avalon.utils.json.JacksonUtils;
@@ -38,60 +38,61 @@ public class AIPlayer extends Player {
 
     @Override
     public SpeakOrder draftTeam() {
-        String json = assistant.chat(messageService.lastHostMessage().prompt()).content();
+        String json = assistant.chat(messageService.lastHostMessage(gameId).prompt()).content();
         json = LLMUtils.llmStringToJson(json);
-        DraftTeamMessage message = JacksonUtils.toType(json, DraftTeamMessage.class);
-        addMessage(message);
-        return SpeakOrder.parse(message.getSpeakOrder());
+        DraftTeamMessage.MessageData messageData = JacksonUtils.toType(json, DraftTeamMessage.MessageData.class);
+        addMessage(new DraftTeamMessage(messageData));
+        return SpeakOrder.parse(messageData.getSpeakOrder());
     }
 
     @Override
     public String chat() {
-        String json = assistant.chat(messageService.lastHostMessage().prompt()).content();
+        String json = assistant.chat(messageService.lastHostMessage(gameId).prompt()).content();
         json = LLMUtils.llmStringToJson(json);
-        PlayerChatMessage message = JacksonUtils.toType(json, PlayerChatMessage.class);
-        addMessage(message);
-        return message.getSpeak();
+        PlayerChatMessage.MessageData messageData = JacksonUtils.toType(json, PlayerChatMessage.MessageData.class);
+        addMessage(new PlayerChatMessage(messageData));
+        return messageData.getSpeak();
     }
 
     @Override
     public Set<Integer> team() {
-        String json = assistant.chat(messageService.lastHostMessage().prompt()).content();
+        String json = assistant.chat(messageService.lastHostMessage(gameId).prompt()).content();
         json = LLMUtils.llmStringToJson(json);
-        ConfirmTeamMessage message = JacksonUtils.toType(json, ConfirmTeamMessage.class);
-        addMessage(message);
-        return message.getTeamNumbers();
+        ConfirmTeamMessage.MessageData messageData = JacksonUtils.toType(json, ConfirmTeamMessage.MessageData.class);
+        addMessage(new ConfirmTeamMessage(messageData));
+        return messageData.getTeamNumbers();
     }
 
     @Override
     public boolean vote() {
-        String json = assistant.chat(messageService.lastHostMessage().prompt()).content();
+        String json = assistant.chat(messageService.lastHostMessage(gameId).prompt()).content();
         json = LLMUtils.llmStringToJson(json);
-        VoteMessage message = JacksonUtils.toType(json, VoteMessage.class);
-        addMessage(message);
-        return message.isAgree();
+        VoteMessage.MessageData messageData = JacksonUtils.toType(json, VoteMessage.MessageData.class);
+        addMessage(new VoteMessage(messageData));
+        return messageData.isAgree();
     }
 
     @Override
     public boolean mission() {
-        MissionMessage message;
+        MissionMessage.MessageData messageData;
         if (CampType.BLUE == role.camp) {
-            message = new MissionMessage();
-            message.setSuccess(true);
+            messageData = new MissionMessage.MessageData();
+            messageData.setSuccess(true);
         } else {
-            String json = assistant.chat(messageService.lastHostMessage().prompt()).content();
+            String json = assistant.chat(messageService.lastHostMessage(gameId).prompt()).content();
             json = LLMUtils.llmStringToJson(json);
-            message = JacksonUtils.toType(json, MissionMessage.class);
+            messageData = JacksonUtils.toType(json, MissionMessage.MessageData.class);
         }
-        addMessage(message);
-        return message.isSuccess();
+        addMessage(new MissionMessage(messageData));
+        return messageData.isSuccess();
     }
 
     @Override
     public int kill() {
-        String json = assistant.chat(messageService.lastHostMessage().prompt()).content();
+        String json = assistant.chat(messageService.lastHostMessage(gameId).prompt()).content();
         json = LLMUtils.llmStringToJson(json);
-        KillResultMessage message = JacksonUtils.toType(json, KillResultMessage.class);
-        return message.getKillNumber();
+        KillResultMessage.MessageData messageData = JacksonUtils.toType(json, KillResultMessage.MessageData.class);
+        addMessage(new KillResultMessage(messageData));
+        return messageData.getKillNumber();
     }
 }

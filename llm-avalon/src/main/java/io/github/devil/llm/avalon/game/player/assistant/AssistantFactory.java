@@ -4,7 +4,7 @@ import dev.langchain4j.model.input.PromptTemplate;
 import dev.langchain4j.service.AiServices;
 import io.github.devil.llm.avalon.constants.CommonConstants;
 import io.github.devil.llm.avalon.constants.PlayerRole;
-import io.github.devil.llm.avalon.game.MessageService;
+import io.github.devil.llm.avalon.game.service.MessageService;
 import io.github.devil.llm.avalon.game.player.Player;
 import io.github.devil.llm.avalon.llm.Assistant;
 import io.github.devil.llm.avalon.llm.Common;

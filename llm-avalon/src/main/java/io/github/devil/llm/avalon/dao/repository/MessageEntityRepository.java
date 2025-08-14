@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package io.github.devil.llm.avalon.dao;
+package io.github.devil.llm.avalon.dao.repository;
+
+import io.github.devil.llm.avalon.dao.entity.MessageEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
+import java.util.List;
 
 /**
  * @author Devil
+ * @since 2022/7/18
  */
-public interface TableConstants {
-    String AVALON = "llm_avalon_";
-    String GAME = AVALON + "game";
-    String ROUND = AVALON + "round";
-    String TURN = AVALON + "turn";
-    String MESSAGE = AVALON + "message";
+public interface MessageEntityRepository extends JpaRepository<MessageEntity, Long>, JpaSpecificationExecutor<MessageEntity> {
+
+    List<MessageEntity> findByGameId(String gameId);
 }

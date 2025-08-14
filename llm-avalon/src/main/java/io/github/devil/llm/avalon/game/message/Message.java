@@ -14,4 +14,21 @@ public interface Message {
         PLAYER, // 玩家
         ;
     }
+
+    interface Type {
+        String AskCaptainSummaryMessage = "AskCaptainSummaryMessage";
+        String AskKillMessage = "AskKillMessage";
+        String AskSpeakMessage = "AskSpeakMessage";
+        String AskVoteMessage = "AskVoteMessage";
+        String BeforeKillMessage = "BeforeKillMessage";
+        String StartTurnMessage = "StartTurnMessage";
+        String TurnEndMessage = "TurnEndMessage";
+
+        String ConfirmTeamMessage = "ConfirmTeamMessage";
+        String DraftTeamMessage = "DraftTeamMessage";
+        String KillResultMessage = "KillResultMessage";
+        String MissionMessage = "MissionMessage";
+        String PlayerChatMessage = "PlayerChatMessage";
+        String VoteMessage = "VoteMessage";
+    }
 }

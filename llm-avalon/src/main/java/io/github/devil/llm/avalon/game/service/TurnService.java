@@ -1,6 +1,13 @@
-package io.github.devil.llm.avalon.game;
+package io.github.devil.llm.avalon.game.service;
 
 import io.github.devil.llm.avalon.constants.SpeakOrder;
+import io.github.devil.llm.avalon.dao.entity.TurnEntity;
+import io.github.devil.llm.avalon.dao.repository.TurnEntityRepository;
+import io.github.devil.llm.avalon.game.Converter;
+import io.github.devil.llm.avalon.game.DBCheckpointSaver;
+import io.github.devil.llm.avalon.game.GameState;
+import io.github.devil.llm.avalon.game.RoundState;
+import io.github.devil.llm.avalon.game.TurnState;
 import io.github.devil.llm.avalon.game.message.host.AskCaptainSummaryMessage;
 import io.github.devil.llm.avalon.game.message.host.AskSpeakMessage;
 import io.github.devil.llm.avalon.game.message.host.AskVoteMessage;
@@ -10,6 +17,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.bsc.langgraph4j.CompileConfig;
 import org.bsc.langgraph4j.CompiledGraph;
 import org.bsc.langgraph4j.GraphStateException;
+import org.bsc.langgraph4j.RunnableConfig;
 import org.bsc.langgraph4j.StateGraph;
 import org.bsc.langgraph4j.action.AsyncEdgeAction;
 import org.bsc.langgraph4j.action.AsyncNodeAction;
@@ -19,9 +27,11 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -40,6 +50,12 @@ public class TurnService {
 
     @Resource
     private MessageService messageService;
+
+    @Resource
+    private PlayerService playerService;
+
+    @Resource
+    private TurnEntityRepository turnEntityRepository;
 
     private CompiledGraph<TurnState> graph;
 
@@ -114,11 +130,11 @@ public class TurnService {
         return node_async(state -> {
             TurnState.Turn turn = state.turn();
             // 队长发言，拟定队伍，决定发言顺序
-            Player captain = turn.captain();
+            Player captain = playerService.getByIdAndNumber(turn.getGameId(), turn.getCaptainNumber());
             messageService.add(new StartTurnMessage(turn.getRound(), turn.getTurn(), turn.getCaptainNumber(), turn.getTeamNumber()));
             // 确定发言顺序
             SpeakOrder speakOrder = captain.draftTeam();
-            List<Integer> speakers = speakers(turn.getCaptainNumber(), speakOrder);
+            List<Integer> speakers = speakers(turn.getGameId(), turn.getCaptainNumber(), speakOrder);
             turn.setUnSpeakers(speakers);
             return Map.of();
         });
@@ -127,10 +143,10 @@ public class TurnService {
     private AsyncNodeAction<TurnState> speakNode() {
         return node_async(state -> {
             TurnState.Turn turn = state.turn();
-            Player speaker = null;
+            Player speaker = playerService.getByIdAndNumber(turn.getGameId(), turn.getUnSpeakers().getFirst());
             messageService.add(new AskSpeakMessage(speaker.getNumber()));
             speaker.chat();
-            turn.getUnSpeakers().remove(0);
+            turn.getUnSpeakers().removeFirst();
             return Map.of();
         });
     }
@@ -139,7 +155,7 @@ public class TurnService {
         return node_async(state -> {
             TurnState.Turn turn = state.turn();
             messageService.add(new AskCaptainSummaryMessage());
-            Player captain = turn.captain();
+            Player captain = playerService.getByIdAndNumber(turn.getGameId(), turn.getCaptainNumber());
             Set<Integer> team = captain.team();
             turn.setTeam(team);
             return Map.of();
@@ -149,7 +165,7 @@ public class TurnService {
     private AsyncNodeAction<TurnState> teamVoteNode() {
         return node_async(state -> {
             TurnState.Turn turn = state.turn();
-            List<Player> players = null; // todo
+            List<Player> players = playerService.getById(turn.getGameId());
             messageService.add(new AskVoteMessage(turn.getTeam()));
             for (Player player : players) {
                 boolean vote = player.vote();
@@ -162,7 +178,7 @@ public class TurnService {
     private AsyncNodeAction<TurnState> missionNode() {
         return node_async(state -> {
             TurnState.Turn turn = state.turn();
-            List<Player> players = null; // todo
+            List<Player> players = playerService.getById(turn.getGameId());
             Set<Player> teamPlayers = players.stream()
                 .filter(p -> turn.getTeam().contains(p.getNumber()))
                 .collect(Collectors.toSet());
@@ -174,11 +190,11 @@ public class TurnService {
         });
     }
 
-    private List<Integer> speakers(Integer captain, SpeakOrder speakOrder) {
+    private List<Integer> speakers(String gameId, Integer captain, SpeakOrder speakOrder) {
         int p = -1;
-        List<Integer> players = null;
+        List<Player> players = playerService.getById(gameId);
         for (int i = 0; i < players.size(); i++) {
-            if (Objects.equals(captain, players.get(i))) {
+            if (Objects.equals(captain, players.get(i).getNumber())) {
                 p = i;
                 break;
             }
@@ -190,7 +206,7 @@ public class TurnService {
                 if (p == players.size()) {
                     p = 0;
                 }
-                speakers.add(players.get(p));
+                speakers.add(players.get(p).getNumber());
                 p++;
             }
         } else {
@@ -199,15 +215,40 @@ public class TurnService {
                 if (p == 0) {
                     p = players.size() - 1;
                 }
-                speakers.add(players.get(p));
+                speakers.add(players.get(p).getNumber());
                 p--;
             }
         }
         return speakers;
     }
 
-    public TurnState.Turn curentTurn() {
-        return null; // todo
+    public Optional<TurnState> invoke(TurnState.Turn turn, RunnableConfig config) {
+        return graph.invoke(TurnState.from(turn), config);
+    }
+
+    public TurnState.Turn create(RoundState.Round round, TurnState.Turn preTurn) {
+        int t = (preTurn == null ? 0 : preTurn.getTurn()) + 1;
+        TurnState.Turn turn = new TurnState.Turn();
+        turn.setGameId(round.getGameId());
+        turn.setRound(round.getRound());
+        turn.setTurn(t);
+        turn.setCaptainNumber(electCaptain(round, 0)); // todo pos
+        turn.setTeamNumber(round.getTeamNum());
+        return turn;
+    }
+
+    /**
+     * 选择当前队长队长
+     * @return 队长的号码
+     */
+    private static int electCaptain(RoundState.Round round, int pos) {
+        return round.getCaptainOrder().get(pos % round.getPlayerNumber());
+    }
+
+    public TurnState.Turn current(RoundState.Round round) {
+        List<TurnEntity> entities = turnEntityRepository.findByGameIdAndRound(round.getGameId(), round.getRound());
+        TurnEntity entity = entities.stream().max(Comparator.comparingInt(TurnEntity::getTurn)).get();
+        return Converter.toTurn(entity);
     }
 
 }

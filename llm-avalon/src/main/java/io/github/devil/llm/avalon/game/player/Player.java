@@ -2,8 +2,8 @@ package io.github.devil.llm.avalon.game.player;
 
 import io.github.devil.llm.avalon.constants.PlayerRole;
 import io.github.devil.llm.avalon.constants.SpeakOrder;
-import io.github.devil.llm.avalon.game.MessageService;
 import io.github.devil.llm.avalon.game.message.PlayerMessage;
+import io.github.devil.llm.avalon.game.service.MessageService;
 import lombok.Getter;
 
 import java.util.List;
@@ -67,7 +67,7 @@ public abstract class Player {
     public abstract int kill();
 
     protected void addMessage(PlayerMessage message) {
-        message.setNumber(number);
+        message.getData().setNumber(number);
         messageService.add(message);
     }
 }

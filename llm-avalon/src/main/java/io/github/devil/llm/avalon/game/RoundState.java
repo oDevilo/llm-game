@@ -7,6 +7,7 @@ import org.bsc.langgraph4j.state.AgentState;
 import org.bsc.langgraph4j.state.Channel;
 import org.bsc.langgraph4j.state.Channels;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,6 +23,12 @@ public class RoundState extends AgentState {
         super(initData);
     }
 
+    public static Map<String, Object> from(RoundState.Round round) {
+        return Map.of(
+            "data", round
+        );
+    }
+
     public Round round() {
         Map<String, Object> data = data();
         return (Round) data.get("data");
@@ -30,6 +37,8 @@ public class RoundState extends AgentState {
     @Getter
     @Setter
     public static class Round {
+
+        private String gameId;
         /**
          * 第几轮
          */
@@ -40,9 +49,17 @@ public class RoundState extends AgentState {
          */
         private int teamNum;
         /**
+         * 玩家数
+         */
+        private int playerNumber;
+        /**
+         * 队长顺序 存的是用户号码
+         */
+        private List<Integer> captainOrder;
+        /**
          * 本轮结果
          */
-        private Result result;
+        private Result result = Result.NOT_END;
     }
 
     public enum Result {

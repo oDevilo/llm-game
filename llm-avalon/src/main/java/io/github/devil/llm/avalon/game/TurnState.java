@@ -1,6 +1,5 @@
 package io.github.devil.llm.avalon.game;
 
-import io.github.devil.llm.avalon.game.player.Player;
 import lombok.Getter;
 import lombok.Setter;
 import org.bsc.langgraph4j.StateGraph;
@@ -8,6 +7,9 @@ import org.bsc.langgraph4j.state.AgentState;
 import org.bsc.langgraph4j.state.Channel;
 import org.bsc.langgraph4j.state.Channels;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,9 +32,17 @@ public class TurnState extends AgentState {
         return (Turn) data.get("data");
     }
 
+    public static Map<String, Object> from(Turn turn) {
+        return Map.of(
+            "data", turn
+        );
+    }
+
     @Getter
     @Setter
     public static class Turn {
+
+        private String gameId;
         /**
          * 第几轮
          */
@@ -52,27 +62,23 @@ public class TurnState extends AgentState {
         /**
          * 未发言的
          */
-        private List<Integer> unSpeakers;
+        private List<Integer> unSpeakers = new ArrayList<>();
         /**
          * 任务名单
          */
-        private Set<Integer> team;
+        private Set<Integer> team = new HashSet<>();
         /**
          * 投票结果
          */
-        private Map<Integer, Boolean> voteResult;
+        private Map<Integer, Boolean> voteResult = new HashMap<>();
         /**
          * 任务结果
          */
-        private Map<Integer, Boolean> missionResult;
+        private Map<Integer, Boolean> missionResult = new HashMap<>();
         /**
          * 本回合结果
          */
-        private Result result;
-
-        public Player captain() {
-            return null; // todo
-        }
+        private Result result = Result.NOT_END;
     }
 
     public enum Result {
