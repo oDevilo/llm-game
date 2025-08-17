@@ -25,6 +25,10 @@ public class AskCaptainSummaryMessage extends HostMessage {
         }
         """;
 
+    public AskCaptainSummaryMessage(String gameId) {
+        super(gameId);
+    }
+
     @Override
     public String prompt() {
         return new PromptTemplate(promptTemplate).apply(
@@ -39,6 +43,16 @@ public class AskCaptainSummaryMessage extends HostMessage {
             Map.of(
             )
         ).text();
+    }
+
+    @Override
+    public String type() {
+        return Type.AskCaptainSummaryMessage;
+    }
+
+    @Override
+    public MData data() {
+        return null;
     }
 
 }

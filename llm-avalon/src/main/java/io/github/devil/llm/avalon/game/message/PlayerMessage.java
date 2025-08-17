@@ -7,11 +7,12 @@ import lombok.Getter;
  * @author Devil
  */
 @Getter
-public abstract class PlayerMessage<T extends PlayerMessage.PlayerData> implements Message {
+public abstract class PlayerMessage<T extends PlayerMessage.PlayerData> extends Message {
 
     protected final T data;
 
-    public PlayerMessage(T data) {
+    public PlayerMessage(String gameId, T data) {
+        super(gameId);
         this.data = data;
     }
 
@@ -21,7 +22,7 @@ public abstract class PlayerMessage<T extends PlayerMessage.PlayerData> implemen
     }
 
     @Data
-    public static class PlayerData {
+    public static class PlayerData implements MData {
         /**
          * 玩家号码
          */

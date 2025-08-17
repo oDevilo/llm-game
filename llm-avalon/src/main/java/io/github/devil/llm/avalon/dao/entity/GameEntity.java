@@ -7,6 +7,7 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Table;
 
 /**
@@ -20,10 +21,21 @@ import javax.persistence.Table;
 @DynamicUpdate
 public class GameEntity extends BaseEntity {
 
+    @Id
+    private String gameId;
+
     private Integer playerNumber;
 
     private String playerRoles;
 
+    private String captainOrder;
+
+    private String missionCamp;
+
     private String state;
 
+    @Override
+    public Object getUid() {
+        return gameId;
+    }
 }

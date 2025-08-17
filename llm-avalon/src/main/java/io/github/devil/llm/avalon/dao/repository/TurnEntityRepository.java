@@ -29,4 +29,6 @@ import java.util.List;
 public interface TurnEntityRepository extends JpaRepository<TurnEntity, Long>, JpaSpecificationExecutor<TurnEntity> {
 
     List<TurnEntity> findByGameIdAndRound(String gameId, int round);
+
+    List<TurnEntity> findByGameId(String gameId);
 }

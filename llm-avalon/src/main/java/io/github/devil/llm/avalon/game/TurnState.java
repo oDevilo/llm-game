@@ -1,12 +1,13 @@
 package io.github.devil.llm.avalon.game;
 
+import io.github.devil.llm.avalon.utils.json.JacksonUtils;
 import lombok.Getter;
 import lombok.Setter;
-import org.bsc.langgraph4j.StateGraph;
 import org.bsc.langgraph4j.state.AgentState;
 import org.bsc.langgraph4j.state.Channel;
 import org.bsc.langgraph4j.state.Channels;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,7 +21,8 @@ import java.util.Set;
 public class TurnState extends AgentState {
 
     public static final Map<String, Channel<?>> SCHEMA = Map.of(
-        "data", Channels.base(Turn::new)
+        "data", Channels.base(Turn::new),
+        "type", Channels.base(() -> "turn")
     );
 
     public TurnState(Map<String, Object> initData) {
@@ -28,8 +30,12 @@ public class TurnState extends AgentState {
     }
 
     public Turn turn() {
-        Map<String, Object> data = data();
-        return (Turn) data.get("data");
+        return turn(data());
+    }
+
+    public static Turn turn(Map<String, Object> data) {
+        String json = JacksonUtils.toJSONString(data.get("data"));
+        return JacksonUtils.toType(json, Turn.class);
     }
 
     public static Map<String, Object> from(Turn turn) {
@@ -40,7 +46,9 @@ public class TurnState extends AgentState {
 
     @Getter
     @Setter
-    public static class Turn {
+    public static class Turn implements Serializable {
+
+        private Long id;
 
         private String gameId;
         /**
@@ -75,34 +83,34 @@ public class TurnState extends AgentState {
          * 任务结果
          */
         private Map<Integer, Boolean> missionResult = new HashMap<>();
-        /**
-         * 本回合结果
-         */
-        private Result result = Result.NOT_END;
-    }
 
-    public enum Result {
-        NOT_END,
-        DRAWN, // 流局
-        MISSION_COMPLETE, // 任务成功
-        MISSION_FAIL, // 任务失败
-        ;
+        private State state = State.DRAFT_TEAM;
     }
 
     @Getter
     public enum State {
-        START(StateGraph.START),
         DRAFT_TEAM("draft_team"),
         SPEAK("speak"),
         SUMMARY("summary"),
         TEAM_VOTE("team_vote"),
         MISSION("mission"),
-        END(StateGraph.END),
+        DRAWN("drawn"), // 流局
+        MISSION_COMPLETE("mission_complete"), // 任务成功
+        MISSION_FAIL("mission_fail"), // 任务失败
         ;
         private final String state;
 
         State(String state) {
             this.state = state;
+        }
+
+        public static State parse(String value) {
+            for (State v : values()) {
+                if (v.state.equals(value)) {
+                    return v;
+                }
+            }
+            return null;
         }
     }
 }

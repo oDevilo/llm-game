@@ -41,7 +41,7 @@ public class AIPlayer extends Player {
         String json = assistant.chat(messageService.lastHostMessage(gameId).prompt()).content();
         json = LLMUtils.llmStringToJson(json);
         DraftTeamMessage.MessageData messageData = JacksonUtils.toType(json, DraftTeamMessage.MessageData.class);
-        addMessage(new DraftTeamMessage(messageData));
+        addMessage(new DraftTeamMessage(gameId, messageData));
         return SpeakOrder.parse(messageData.getSpeakOrder());
     }
 
@@ -50,7 +50,7 @@ public class AIPlayer extends Player {
         String json = assistant.chat(messageService.lastHostMessage(gameId).prompt()).content();
         json = LLMUtils.llmStringToJson(json);
         PlayerChatMessage.MessageData messageData = JacksonUtils.toType(json, PlayerChatMessage.MessageData.class);
-        addMessage(new PlayerChatMessage(messageData));
+        addMessage(new PlayerChatMessage(gameId, messageData));
         return messageData.getSpeak();
     }
 
@@ -59,7 +59,7 @@ public class AIPlayer extends Player {
         String json = assistant.chat(messageService.lastHostMessage(gameId).prompt()).content();
         json = LLMUtils.llmStringToJson(json);
         ConfirmTeamMessage.MessageData messageData = JacksonUtils.toType(json, ConfirmTeamMessage.MessageData.class);
-        addMessage(new ConfirmTeamMessage(messageData));
+        addMessage(new ConfirmTeamMessage(gameId, messageData));
         return messageData.getTeamNumbers();
     }
 
@@ -68,7 +68,7 @@ public class AIPlayer extends Player {
         String json = assistant.chat(messageService.lastHostMessage(gameId).prompt()).content();
         json = LLMUtils.llmStringToJson(json);
         VoteMessage.MessageData messageData = JacksonUtils.toType(json, VoteMessage.MessageData.class);
-        addMessage(new VoteMessage(messageData));
+        addMessage(new VoteMessage(gameId, messageData));
         return messageData.isAgree();
     }
 
@@ -83,7 +83,7 @@ public class AIPlayer extends Player {
             json = LLMUtils.llmStringToJson(json);
             messageData = JacksonUtils.toType(json, MissionMessage.MessageData.class);
         }
-        addMessage(new MissionMessage(messageData));
+        addMessage(new MissionMessage(gameId, messageData));
         return messageData.isSuccess();
     }
 
@@ -92,7 +92,7 @@ public class AIPlayer extends Player {
         String json = assistant.chat(messageService.lastHostMessage(gameId).prompt()).content();
         json = LLMUtils.llmStringToJson(json);
         KillResultMessage.MessageData messageData = JacksonUtils.toType(json, KillResultMessage.MessageData.class);
-        addMessage(new KillResultMessage(messageData));
+        addMessage(new KillResultMessage(gameId, messageData));
         return messageData.getKillNumber();
     }
 }

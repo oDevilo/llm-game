@@ -2,6 +2,9 @@ package io.github.devil.llm.avalon.game.message.host;
 
 import dev.langchain4j.model.input.PromptTemplate;
 import io.github.devil.llm.avalon.game.message.HostMessage;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Map;
 
@@ -10,7 +13,7 @@ import java.util.Map;
  */
 public class AskSpeakMessage extends HostMessage {
 
-    private final int number;
+    private final MessageData data;
 
     private final String textTemplate = """
         下面请{{number}}号玩家发言
@@ -19,7 +22,7 @@ public class AskSpeakMessage extends HostMessage {
     // PlayerChatMessage
     private final String promptTemplate = """
         下面请{{number}}号玩家发言
-
+        
         # 返回格式
         {
             "thinking": "思考过程",
@@ -27,15 +30,16 @@ public class AskSpeakMessage extends HostMessage {
         }
         """;
 
-    public AskSpeakMessage(int number) {
-        this.number = number;
+    public AskSpeakMessage(String gameId, MessageData data) {
+        super(gameId);
+        this.data = data;
     }
 
     @Override
     public String prompt() {
         return new PromptTemplate(promptTemplate).apply(
             Map.of(
-                "number", number
+                "number", data.getNumber()
             )
         ).text();
     }
@@ -44,9 +48,26 @@ public class AskSpeakMessage extends HostMessage {
     public String text() {
         return new PromptTemplate(textTemplate).apply(
             Map.of(
-                "number", number
+                "number", data.getNumber()
             )
         ).text();
+    }
+
+    @Override
+    public String type() {
+        return Type.AskSpeakMessage;
+    }
+
+    @Override
+    public MData data() {
+        return data;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MessageData implements MData {
+        private int number;
     }
 
 }

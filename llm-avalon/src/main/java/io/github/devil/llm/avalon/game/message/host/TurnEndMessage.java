@@ -3,6 +3,7 @@ package io.github.devil.llm.avalon.game.message.host;
 import dev.langchain4j.model.input.PromptTemplate;
 import io.github.devil.llm.avalon.game.TurnState;
 import io.github.devil.llm.avalon.game.message.HostMessage;
+import lombok.Data;
 
 import java.util.Map;
 
@@ -11,12 +12,7 @@ import java.util.Map;
  */
 public class TurnEndMessage extends HostMessage {
 
-    private final int round;
-    private final int turn;
-    private final int captainNumber;
-    private final int teamNum;
-    private final TurnState.Result result;
-    private final int failNumber;
+    private final MessageData data;
 
     private final String textTemplate = """
         当前是第{{round}}轮的第{{turn}}回合，本回合最终结果为{{result}}。
@@ -35,17 +31,13 @@ public class TurnEndMessage extends HostMessage {
         当前是第{{round}}轮的第{{turn}}回合，本回合最终结果为{{result}}，任务失败票数{{failNumber}}。
         """;
 
-    public TurnEndMessage(int round, int turn, int captainNumber, int teamNum, TurnState.Result result, int failNumber) {
-        this.round = round;
-        this.turn = turn;
-        this.captainNumber = captainNumber;
-        this.teamNum = teamNum;
-        this.result = result;
-        this.failNumber = failNumber;
+    public TurnEndMessage(String gameId, MessageData data) {
+        super(gameId);
+        this.data = data;
     }
 
     public String prompt() {
-        if (failNumber > 0) {
+        if (data.failNumber > 0) {
             return new PromptTemplate(failPromptTemplate).apply(
                 variables()
             ).text();
@@ -58,7 +50,7 @@ public class TurnEndMessage extends HostMessage {
 
     @Override
     public String text() {
-        if (failNumber > 0) {
+        if (data.failNumber > 0) {
             return new PromptTemplate(failTextTemplate).apply(
                 variables()
             ).text();
@@ -71,13 +63,33 @@ public class TurnEndMessage extends HostMessage {
 
     private Map<String, Object> variables() {
         return Map.of(
-            "round", round,
-            "turn", turn,
-            "captainNumber", captainNumber,
-            "teamNum", teamNum,
-            "result", result,
-            "failNumber", failNumber
+            "round", data.round,
+            "turn", data.turn,
+            "captainNumber", data.captainNumber,
+            "teamNum", data.teamNum,
+            "result", data.result,
+            "failNumber", data.failNumber
         );
+    }
+
+    @Override
+    public String type() {
+        return Type.TurnEndMessage;
+    }
+
+    @Override
+    public MData data() {
+        return data;
+    }
+
+    @Data
+    public static class MessageData implements MData {
+        private int round;
+        private int turn;
+        private int captainNumber;
+        private int teamNum;
+        private TurnState.State result;
+        private int failNumber;
     }
 
 }

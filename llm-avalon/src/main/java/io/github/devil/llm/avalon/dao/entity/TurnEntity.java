@@ -7,6 +7,9 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import javax.persistence.Table;
 
 /**
@@ -14,11 +17,15 @@ import javax.persistence.Table;
  */
 @Setter
 @Getter
-@Table(name = TableConstants.ROUND)
+@Table(name = TableConstants.TURN)
 @Entity
 @DynamicInsert
 @DynamicUpdate
 public class TurnEntity extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     private String gameId;
 
@@ -36,6 +43,10 @@ public class TurnEntity extends BaseEntity {
 
     private String missionResult;
 
-    private String result;
+    private String state;
 
+    @Override
+    public Object getUid() {
+        return id;
+    }
 }

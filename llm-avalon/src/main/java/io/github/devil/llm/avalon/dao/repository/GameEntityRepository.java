@@ -24,5 +24,5 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
  * @author Devil
  * @since 2022/7/18
  */
-public interface GameEntityRepository extends JpaRepository<GameEntity, Long>, JpaSpecificationExecutor<GameEntity> {
+public interface GameEntityRepository extends JpaRepository<GameEntity, String>, JpaSpecificationExecutor<GameEntity> {
 }

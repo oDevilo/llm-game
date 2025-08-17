@@ -8,4 +8,13 @@ public enum CampType {
     BLUE,
     RED,
     ;
+
+    public static CampType parse(String value) {
+        for (CampType v : values()) {
+            if (v.name().equals(value)) {
+                return v;
+            }
+        }
+        return UNKNOWN;
+    }
 }

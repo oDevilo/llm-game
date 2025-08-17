@@ -14,10 +14,10 @@ spring:
       connection-test-query: SELECT 1
       connection-init-sql: set names utf8mb4
     driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
-    url: jdbc:log4jdbc:h2:./fluxion;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false;MODE=mysql;
+    url: jdbc:log4jdbc:h2:./llm-avalon;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false;MODE=mysql;
   jpa:
-    hibernate:
-      ddl-auto: none
+#    hibernate:
+#      ddl-auto: none
 #      naming:
 #        physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
 #        implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
@@ -25,9 +25,9 @@ spring:
     properties:
       hibernate:
         enable_lazy_load_no_trans: true # 解决懒加载问题 no Session
-  flyway:
-    baseline-on-migrate: true
-    baseline-version: 0
+#  flyway:
+#    baseline-on-migrate: true
+#    baseline-version: 0
   h2:
     # h2嵌入式数据库控制台，可以通过浏览器访问 ip:port/h2-console
     # file 模式 用户名密码都是空

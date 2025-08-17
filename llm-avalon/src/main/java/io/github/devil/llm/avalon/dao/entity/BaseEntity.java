@@ -36,12 +36,6 @@ import java.util.Objects;
 @Setter
 @MappedSuperclass
 public abstract class BaseEntity {
-    /**
-     * 数据库自增id
-     */
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
     /**
      * 记录创建时间
@@ -61,9 +55,7 @@ public abstract class BaseEntity {
     @Column(name = "is_deleted")
     private boolean deleted;
 
-    public Object getUid() {
-        return id;
-    }
+    public abstract Object getUid();
 
     @Override
     public boolean equals(Object o) {

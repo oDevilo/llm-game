@@ -1,7 +1,7 @@
 package io.github.devil.llm.avalon.game;
 
 import io.github.devil.llm.avalon.constants.CampType;
-import io.github.devil.llm.avalon.game.player.Player;
+import io.github.devil.llm.avalon.utils.json.JacksonUtils;
 import lombok.Getter;
 import lombok.Setter;
 import org.bsc.langgraph4j.StateGraph;
@@ -9,6 +9,7 @@ import org.bsc.langgraph4j.state.AgentState;
 import org.bsc.langgraph4j.state.Channel;
 import org.bsc.langgraph4j.state.Channels;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +19,8 @@ import java.util.Map;
 public class GameState extends AgentState {
 
     public static final Map<String, Channel<?>> SCHEMA = Map.of(
-        "data", Channels.base(Game::new)
+        "data", Channels.base(Game::new),
+        "type", Channels.base(() -> "game")
     );
 
     public GameState(Map<String, Object> initData) {
@@ -26,8 +28,12 @@ public class GameState extends AgentState {
     }
 
     public Game game() {
-        Map<String, Object> data = data();
-        return (Game) data.get("data");
+        return game(data());
+    }
+
+    public static Game game(Map<String, Object> data) {
+        String json = JacksonUtils.toJSONString(data.get("data"));
+        return JacksonUtils.toType(json, Game.class);
     }
 
     public static Map<String, Object> from(GameState.Game game) {
@@ -38,7 +44,7 @@ public class GameState extends AgentState {
 
     @Getter
     @Setter
-    public static class Game {
+    public static class Game implements Serializable {
         /**
          * 本局ID
          */
@@ -49,38 +55,41 @@ public class GameState extends AgentState {
          */
         private int playerNumber;
         /**
-         * 分配的玩家
+         * 玩家对应角色
          */
-        private List<Player> players;
+        private Map<Integer, String> playerRoles;
         /**
          * 队长顺序 存的是用户号码
          */
         private List<Integer> captainOrder;
         /**
-         * 如果 0 就选 captainOrder.get(0) 为队长
-         */
-        private int captainOrderPos;
-        /**
          * 哪边阵营先完成3次任务
          */
-        private CampType missionCamp;
-        /**
-         * 哪边阵营最终胜利
-         */
-        private CampType winCamp;
+        private CampType missionCamp = CampType.UNKNOWN;
+
+        private State state = State.MISSION_STEP;
     }
 
     @Getter
     public enum State {
-        START(StateGraph.START),
         MISSION_STEP("mission_step"),
         KILL_MERLIN("kill_merlin"),
-        END(StateGraph.END),
+        RED_WIN("red_win"),
+        BLUE_WIN("blue_win"),
         ;
         private final String state;
 
         State(String state) {
             this.state = state;
+        }
+
+        public static State parse(String value) {
+            for (State v : values()) {
+                if (v.state.equals(value)) {
+                    return v;
+                }
+            }
+            return null;
         }
     }
 }

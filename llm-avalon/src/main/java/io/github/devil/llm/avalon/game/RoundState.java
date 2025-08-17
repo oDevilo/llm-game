@@ -1,12 +1,13 @@
 package io.github.devil.llm.avalon.game;
 
+import io.github.devil.llm.avalon.utils.json.JacksonUtils;
 import lombok.Getter;
 import lombok.Setter;
-import org.bsc.langgraph4j.StateGraph;
 import org.bsc.langgraph4j.state.AgentState;
 import org.bsc.langgraph4j.state.Channel;
 import org.bsc.langgraph4j.state.Channels;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -16,7 +17,8 @@ import java.util.Map;
 public class RoundState extends AgentState {
 
     public static final Map<String, Channel<?>> SCHEMA = Map.of(
-        "data", Channels.base(Round::new)
+        "data", Channels.base(Round::new),
+        "type", Channels.base(() -> "round")
     );
 
     public RoundState(Map<String, Object> initData) {
@@ -30,13 +32,19 @@ public class RoundState extends AgentState {
     }
 
     public Round round() {
-        Map<String, Object> data = data();
-        return (Round) data.get("data");
+        return round(data());
+    }
+
+    public static Round round(Map<String, Object> data) {
+        String json = JacksonUtils.toJSONString(data.get("data"));
+        return JacksonUtils.toType(json, Round.class);
     }
 
     @Getter
     @Setter
-    public static class Round {
+    public static class Round implements Serializable {
+
+        private Long id;
 
         private String gameId;
         /**
@@ -56,30 +64,88 @@ public class RoundState extends AgentState {
          * 队长顺序 存的是用户号码
          */
         private List<Integer> captainOrder;
-        /**
-         * 本轮结果
-         */
-        private Result result = Result.NOT_END;
-    }
 
-    public enum Result {
-        NOT_END,
-        DRAWN_OVER, // 流局超过5次
-        MISSION_COMPLETE, // 任务成功
-        MISSION_FAIL, // 任务失败
-        ;
+        private State state = State.RUNNING;
+
+        /**
+         * 出任务人数
+         */
+        public static int teamNum(int playerNumber, int round) {
+            switch (playerNumber) {
+                case 5: {
+                    switch (round) {
+                        case 1, 3: {
+                            return 2;
+                        }
+                        case 2, 4, 5: {
+                            return 3;
+                        }
+                    }
+                }
+                case 6: {
+                    switch (round) {
+                        case 1: {
+                            return 2;
+                        }
+                        case 2, 4: {
+                            return 3;
+                        }
+                        case 3, 5: {
+                            return 4;
+                        }
+                    }
+                }
+                case 7: {
+                    switch (round) {
+                        case 1: {
+                            return 2;
+                        }
+                        case 2, 3: {
+                            return 3;
+                        }
+                        case 4, 5: {
+                            return 4;
+                        }
+                    }
+                }
+                case 8, 9, 10: {
+                    switch (round) {
+                        case 1: {
+                            return 3;
+                        }
+                        case 2, 3: {
+                            return 4;
+                        }
+                        case 4, 5: {
+                            return 5;
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
     }
 
     @Getter
     public enum State {
-        START(StateGraph.START),
         RUNNING("running"),
-        END(StateGraph.END),
+        DRAWN_OVER("drawn_over"), // 流局超过5次
+        MISSION_COMPLETE("mission_complete"), // 任务成功
+        MISSION_FAIL("mission_fail"), // 任务失败
         ;
         private final String state;
 
         State(String state) {
             this.state = state;
+        }
+
+        public static State parse(String value) {
+            for (State v : values()) {
+                if (v.state.equals(value)) {
+                    return v;
+                }
+            }
+            return null;
         }
     }
 }

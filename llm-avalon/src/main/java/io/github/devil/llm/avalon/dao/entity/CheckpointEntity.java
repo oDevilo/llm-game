@@ -7,8 +7,6 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -17,29 +15,25 @@ import javax.persistence.Table;
  */
 @Setter
 @Getter
-@Table(name = TableConstants.MESSAGE)
+@Table(name = TableConstants.CHECKPOINT)
 @Entity
 @DynamicInsert
 @DynamicUpdate
-public class MessageEntity extends BaseEntity {
+public class CheckpointEntity extends BaseEntity {
 
-    /**
-     * 数据库自增id
-     */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String checkpointId;
 
-    private String gameId;
+    private String threadId;
 
-    private String type;
+    private String state;
 
-    private String source;
+    private String nodeId;
 
-    private String data;
+    private String nextNodeId;
 
     @Override
     public Object getUid() {
-        return id;
+        return checkpointId;
     }
 }

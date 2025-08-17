@@ -4,15 +4,15 @@ import io.github.devil.llm.avalon.constants.SpeakOrder;
 import io.github.devil.llm.avalon.dao.entity.TurnEntity;
 import io.github.devil.llm.avalon.dao.repository.TurnEntityRepository;
 import io.github.devil.llm.avalon.game.Converter;
-import io.github.devil.llm.avalon.game.DBCheckpointSaver;
-import io.github.devil.llm.avalon.game.GameState;
 import io.github.devil.llm.avalon.game.RoundState;
 import io.github.devil.llm.avalon.game.TurnState;
+import io.github.devil.llm.avalon.game.checkpoint.DBCheckpointSaver;
 import io.github.devil.llm.avalon.game.message.host.AskCaptainSummaryMessage;
 import io.github.devil.llm.avalon.game.message.host.AskSpeakMessage;
 import io.github.devil.llm.avalon.game.message.host.AskVoteMessage;
 import io.github.devil.llm.avalon.game.message.host.StartTurnMessage;
 import io.github.devil.llm.avalon.game.player.Player;
+import io.github.devil.llm.avalon.utils.json.JacksonUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.bsc.langgraph4j.CompileConfig;
 import org.bsc.langgraph4j.CompiledGraph;
@@ -21,12 +21,14 @@ import org.bsc.langgraph4j.RunnableConfig;
 import org.bsc.langgraph4j.StateGraph;
 import org.bsc.langgraph4j.action.AsyncEdgeAction;
 import org.bsc.langgraph4j.action.AsyncNodeAction;
+import org.bsc.langgraph4j.serializer.plain_text.jackson.JacksonStateSerializer;
 import org.bsc.langgraph4j.utils.EdgeMappings;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -61,29 +63,40 @@ public class TurnService {
 
     @PostConstruct
     public void init() throws GraphStateException {
-        var graph = new StateGraph<>(TurnState.SCHEMA, TurnState::new)
+        AsyncEdgeAction<TurnState> speakCheckAction = new AsyncEdgeAction<>() {
+            @Override
+            public CompletableFuture<String> apply(TurnState state) {
+                TurnState.Turn turn = state.turn();
+                if (CollectionUtils.isEmpty(turn.getUnSpeakers())) {
+                    return completedFuture("speak_end");
+                } else {
+                    return completedFuture("next_speak");
+                }
+            }
+        };
+        Map<String, String> speakCheckMapping = EdgeMappings.builder()
+            .to(TurnState.State.SPEAK.getState(), "next_speak")
+            .to(TurnState.State.SUMMARY.getState(), "speak_end")
+            .build();
+
+
+        JacksonStateSerializer<TurnState> stateSerializer = new JacksonStateSerializer<>(TurnState::new, JacksonUtils.defaultObjectMapper()) {
+        };
+        var graph = new StateGraph<>(TurnState.SCHEMA, stateSerializer)
             .addNode(TurnState.State.DRAFT_TEAM.getState(), draftTeamNode())
             .addNode(TurnState.State.SPEAK.getState(), speakNode())
             .addNode(TurnState.State.SUMMARY.getState(), summaryNode())
             .addNode(TurnState.State.TEAM_VOTE.getState(), teamVoteNode())
             .addNode(TurnState.State.MISSION.getState(), missionNode())
+            .addNode(TurnState.State.DRAWN.getState(), stateNode(TurnState.State.DRAWN))
+            .addNode(TurnState.State.MISSION_COMPLETE.getState(), stateNode(TurnState.State.MISSION_COMPLETE))
+            .addNode(TurnState.State.MISSION_FAIL.getState(), stateNode(TurnState.State.MISSION_FAIL))
             // 开始
-            .addEdge(GameState.State.START.getState(), TurnState.State.DRAFT_TEAM.getState())
+            .addEdge(StateGraph.START, TurnState.State.DRAFT_TEAM.getState())
             // 判断发言是否都结束
-            .addConditionalEdges(TurnState.State.DRAFT_TEAM.getState(), new AsyncEdgeAction<TurnState>() {
-                @Override
-                public CompletableFuture<String> apply(TurnState state) {
-                    TurnState.Turn turn = state.turn();
-                    if (CollectionUtils.isEmpty(turn.getUnSpeakers())) {
-                        return completedFuture("speak_end");
-                    } else {
-                        return completedFuture("next_speak");
-                    }
-                }
-            }, EdgeMappings.builder()
-                .to(TurnState.State.SPEAK.getState(), "next_speak")
-                .to(TurnState.State.SUMMARY.getState(), "speak_end")
-                .build())
+            .addConditionalEdges(TurnState.State.DRAFT_TEAM.getState(), speakCheckAction, speakCheckMapping)
+            .addConditionalEdges(TurnState.State.SPEAK.getState(), speakCheckAction, speakCheckMapping)
+            .addEdge(TurnState.State.SUMMARY.getState(), TurnState.State.TEAM_VOTE.getState())
             // 判断车队是否组件成功
             .addConditionalEdges(TurnState.State.TEAM_VOTE.getState(), new AsyncEdgeAction<TurnState>() {
                 @Override
@@ -95,30 +108,34 @@ public class TurnService {
                         return completedFuture("team_success");
                     } else {
                         // 流局
-                        turn.setResult(TurnState.Result.DRAWN);
                         return completedFuture("drawn");
                     }
                 }
             }, EdgeMappings.builder()
                 .to(TurnState.State.MISSION.getState(), "team_success")
-                .to(TurnState.State.END.getState(), "drawn")
+                .to(TurnState.State.DRAWN.getState(), "drawn")
                 .build())
             // 判断任务是否成功
-            .addConditionalEdges(TurnState.State.TEAM_VOTE.getState(), new AsyncEdgeAction<TurnState>() {
+            .addConditionalEdges(TurnState.State.MISSION.getState(), new AsyncEdgeAction<TurnState>() {
                 @Override
                 public CompletableFuture<String> apply(TurnState state) {
                     TurnState.Turn turn = state.turn();
                     long missionFailNum = turn.getMissionResult().values().stream().filter(r -> !r).count();
                     if (missionFailNum > 0) {
-                        turn.setResult(TurnState.Result.MISSION_FAIL);
+                        return completedFuture("mission_complete");
                     } else {
-                        turn.setResult(TurnState.Result.MISSION_COMPLETE);
+                        return completedFuture("mission_fail");
                     }
-                    return completedFuture("end");
                 }
             }, EdgeMappings.builder()
-                .to(TurnState.State.END.getState(), "end")
-                .build());
+                .to(TurnState.State.MISSION_COMPLETE.getState(), "mission_complete")
+                .to(TurnState.State.MISSION_FAIL.getState(), "mission_fail")
+                .build())
+            // 结束
+            .addEdge(TurnState.State.DRAWN.getState(), StateGraph.END)
+            .addEdge(TurnState.State.MISSION_COMPLETE.getState(), StateGraph.END)
+            .addEdge(TurnState.State.MISSION_FAIL.getState(), StateGraph.END)
+            ;
 
         this.graph = graph.compile(CompileConfig.builder()
             .checkpointSaver(checkpointSaver)
@@ -131,12 +148,17 @@ public class TurnService {
             TurnState.Turn turn = state.turn();
             // 队长发言，拟定队伍，决定发言顺序
             Player captain = playerService.getByIdAndNumber(turn.getGameId(), turn.getCaptainNumber());
-            messageService.add(new StartTurnMessage(turn.getRound(), turn.getTurn(), turn.getCaptainNumber(), turn.getTeamNumber()));
+            messageService.add(new StartTurnMessage(
+                turn.getGameId(),
+                new StartTurnMessage.MessageData(turn.getRound(), turn.getTurn(), turn.getCaptainNumber(), turn.getTeamNumber())
+            ));
             // 确定发言顺序
             SpeakOrder speakOrder = captain.draftTeam();
             List<Integer> speakers = speakers(turn.getGameId(), turn.getCaptainNumber(), speakOrder);
             turn.setUnSpeakers(speakers);
-            return Map.of();
+            turn.setState(TurnState.State.DRAFT_TEAM);
+            turnEntityRepository.saveAndFlush(Converter.toEntity(turn));
+            return TurnState.from(turn);
         });
     }
 
@@ -144,21 +166,25 @@ public class TurnService {
         return node_async(state -> {
             TurnState.Turn turn = state.turn();
             Player speaker = playerService.getByIdAndNumber(turn.getGameId(), turn.getUnSpeakers().getFirst());
-            messageService.add(new AskSpeakMessage(speaker.getNumber()));
+            messageService.add(new AskSpeakMessage(turn.getGameId(), new AskSpeakMessage.MessageData(speaker.getNumber())));
             speaker.chat();
             turn.getUnSpeakers().removeFirst();
-            return Map.of();
+            turn.setState(TurnState.State.SPEAK);
+            turnEntityRepository.saveAndFlush(Converter.toEntity(turn));
+            return TurnState.from(turn);
         });
     }
 
     private AsyncNodeAction<TurnState> summaryNode() {
         return node_async(state -> {
             TurnState.Turn turn = state.turn();
-            messageService.add(new AskCaptainSummaryMessage());
+            messageService.add(new AskCaptainSummaryMessage(turn.getGameId()));
             Player captain = playerService.getByIdAndNumber(turn.getGameId(), turn.getCaptainNumber());
             Set<Integer> team = captain.team();
             turn.setTeam(team);
-            return Map.of();
+            turn.setState(TurnState.State.SUMMARY);
+            turnEntityRepository.saveAndFlush(Converter.toEntity(turn));
+            return TurnState.from(turn);
         });
     }
 
@@ -166,12 +192,14 @@ public class TurnService {
         return node_async(state -> {
             TurnState.Turn turn = state.turn();
             List<Player> players = playerService.getById(turn.getGameId());
-            messageService.add(new AskVoteMessage(turn.getTeam()));
+            messageService.add(new AskVoteMessage(turn.getGameId(), new AskVoteMessage.MessageData(turn.getTeam())));
             for (Player player : players) {
                 boolean vote = player.vote();
                 turn.getVoteResult().put(player.getNumber(), vote);
             }
-            return Map.of();
+            turn.setState(TurnState.State.TEAM_VOTE);
+            turnEntityRepository.saveAndFlush(Converter.toEntity(turn));
+            return TurnState.from(turn);
         });
     }
 
@@ -186,7 +214,18 @@ public class TurnService {
                 boolean mission = teamPlayer.mission();
                 turn.getMissionResult().put(teamPlayer.getNumber(), mission);
             }
-            return Map.of();
+            turn.setState(TurnState.State.MISSION);
+            turnEntityRepository.saveAndFlush(Converter.toEntity(turn));
+            return TurnState.from(turn);
+        });
+    }
+
+    private AsyncNodeAction<TurnState> stateNode(TurnState.State s) {
+        return node_async(state -> {
+            TurnState.Turn turn = state.turn();
+            turn.setState(s);
+            turnEntityRepository.saveAndFlush(Converter.toEntity(turn));
+            return TurnState.from(turn);
         });
     }
 
@@ -227,13 +266,20 @@ public class TurnService {
     }
 
     public TurnState.Turn create(RoundState.Round round, TurnState.Turn preTurn) {
+        // 获取历史turn，判断是第几个
+        List<TurnEntity> entities = turnEntityRepository.findByGameId(round.getGameId());
+        int pos = (entities == null ? Collections.emptyList() : entities).size();
         int t = (preTurn == null ? 0 : preTurn.getTurn()) + 1;
         TurnState.Turn turn = new TurnState.Turn();
         turn.setGameId(round.getGameId());
         turn.setRound(round.getRound());
         turn.setTurn(t);
-        turn.setCaptainNumber(electCaptain(round, 0)); // todo pos
+        turn.setCaptainNumber(electCaptain(round, pos));
         turn.setTeamNumber(round.getTeamNum());
+
+        TurnEntity entity = Converter.toEntity(turn);
+        turnEntityRepository.saveAndFlush(entity);
+        turn.setId(entity.getId());
         return turn;
     }
 
@@ -247,8 +293,11 @@ public class TurnService {
 
     public TurnState.Turn current(RoundState.Round round) {
         List<TurnEntity> entities = turnEntityRepository.findByGameIdAndRound(round.getGameId(), round.getRound());
+        if (CollectionUtils.isEmpty(entities)) {
+            return null;
+        }
         TurnEntity entity = entities.stream().max(Comparator.comparingInt(TurnEntity::getTurn)).get();
-        return Converter.toTurn(entity);
+        return Converter.toTurn(round, entity);
     }
 
 }

@@ -28,6 +28,10 @@ public class AskKillMessage extends HostMessage {
         }
         """;
 
+    public AskKillMessage(String gameId) {
+        super(gameId);
+    }
+
     public String prompt() {
         return new PromptTemplate(promptTemplate).apply(
             Map.of()
@@ -39,6 +43,16 @@ public class AskKillMessage extends HostMessage {
         return new PromptTemplate(textTemplate).apply(
             Map.of()
         ).text();
+    }
+
+    @Override
+    public String type() {
+        return Type.AskKillMessage;
+    }
+
+    @Override
+    public MData data() {
+        return null;
     }
 
 }

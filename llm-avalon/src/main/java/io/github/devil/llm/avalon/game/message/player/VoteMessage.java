@@ -11,8 +11,8 @@ import lombok.Getter;
 @Getter
 public class VoteMessage extends PlayerMessage<VoteMessage.MessageData> {
 
-    public VoteMessage(MessageData data) {
-        super(data);
+    public VoteMessage(String gamId, MessageData data) {
+        super(gamId, data);
     }
 
     @Override
@@ -27,6 +27,16 @@ public class VoteMessage extends PlayerMessage<VoteMessage.MessageData> {
          * 赞成
          */
         private boolean agree;
+    }
+
+    @Override
+    public String type() {
+        return Type.VoteMessage;
+    }
+
+    @Override
+    public MData data() {
+        return data;
     }
 
 }

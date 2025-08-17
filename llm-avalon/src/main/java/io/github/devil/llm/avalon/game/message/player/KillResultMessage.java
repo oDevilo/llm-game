@@ -11,8 +11,8 @@ import lombok.Getter;
 @Getter
 public class KillResultMessage extends PlayerMessage<KillResultMessage.MessageData> {
 
-    public KillResultMessage(MessageData data) {
-        super(data);
+    public KillResultMessage(String gamId, MessageData data) {
+        super(gamId, data);
     }
 
     @Override
@@ -26,5 +26,15 @@ public class KillResultMessage extends PlayerMessage<KillResultMessage.MessageDa
     public static class MessageData extends PlayerData {
 
         private int killNumber;
+    }
+
+    @Override
+    public String type() {
+        return Type.KillResultMessage;
+    }
+
+    @Override
+    public MData data() {
+        return data;
     }
 }

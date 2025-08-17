@@ -11,8 +11,8 @@ import lombok.Getter;
 @Getter
 public class DraftTeamMessage extends PlayerMessage<DraftTeamMessage.MessageData> {
 
-    public DraftTeamMessage(MessageData data) {
-        super(data);
+    public DraftTeamMessage(String gamId, MessageData data) {
+        super(gamId, data);
     }
 
     @Override
@@ -32,6 +32,16 @@ public class DraftTeamMessage extends PlayerMessage<DraftTeamMessage.MessageData
          * 确定的发言顺序
          */
         private String speakOrder;
+    }
+
+    @Override
+    public String type() {
+        return Type.DraftTeamMessage;
+    }
+
+    @Override
+    public MData data() {
+        return data;
     }
 
 }

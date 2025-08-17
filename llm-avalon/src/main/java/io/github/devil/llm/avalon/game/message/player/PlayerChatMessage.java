@@ -11,8 +11,8 @@ import lombok.Getter;
 @Getter
 public class PlayerChatMessage extends PlayerMessage<PlayerChatMessage.MessageData> {
 
-    public PlayerChatMessage(MessageData data) {
-        super(data);
+    public PlayerChatMessage(String gamId, MessageData data) {
+        super(gamId, data);
     }
 
     @Override
@@ -27,5 +27,15 @@ public class PlayerChatMessage extends PlayerMessage<PlayerChatMessage.MessageDa
         private String thinking;
 
         private String speak;
+    }
+
+    @Override
+    public String type() {
+        return Type.PlayerChatMessage;
+    }
+
+    @Override
+    public MData data() {
+        return data;
     }
 }

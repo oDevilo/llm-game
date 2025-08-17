@@ -2,8 +2,13 @@ package io.github.devil.llm.avalon.game.service;
 
 import io.github.devil.llm.avalon.constants.PlayerRole;
 import io.github.devil.llm.avalon.constants.RolePools;
+import io.github.devil.llm.avalon.dao.entity.GameEntity;
+import io.github.devil.llm.avalon.dao.repository.GameEntityRepository;
+import io.github.devil.llm.avalon.game.Converter;
+import io.github.devil.llm.avalon.game.GameState;
 import io.github.devil.llm.avalon.game.player.AIPlayer;
 import io.github.devil.llm.avalon.game.player.Player;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -23,6 +28,8 @@ public class PlayerService {
 
     @Resource
     private MessageService messageService;
+    @Resource
+    private GameEntityRepository gameEntityRepository;
 
     public List<Player> createPlayers(String gameId, int playerNumber) {
         // 获取角色池
@@ -46,11 +53,34 @@ public class PlayerService {
     }
 
     public Player getByIdAndNumber(String gameId, int number) {
-        return CACHE.get(gameId).stream().filter(p -> p.getNumber() == number).findFirst().get();
+        List<Player> players = CACHE.get(gameId);
+        if (CollectionUtils.isEmpty(players)) {
+            players = reload(gameId);
+        }
+        return players.stream().filter(p -> p.getNumber() == number).findFirst().get();
     }
 
     public List<Player> getById(String gameId) {
-        return CACHE.get(gameId);
+        List<Player> players = CACHE.get(gameId);
+        if (CollectionUtils.isEmpty(players)) {
+            return reload(gameId);
+        }
+        return players;
+    }
+
+    private List<Player> reload(String gameId) {
+        GameEntity gameEntity = gameEntityRepository.findById(gameId).get();
+        GameState.Game game = Converter.toGame(gameEntity);
+        List<Player> players = new ArrayList<>();
+        for (Map.Entry<Integer, String> entry : game.getPlayerRoles().entrySet()) {
+            Player player = new AIPlayer(gameId, entry.getKey(), PlayerRole.parse(entry.getValue()), messageService);
+            players.add(player);
+        }
+        for (Player player : players) {
+            player.init(players);
+        }
+        CACHE.put(gameId, players);
+        return players;
     }
 
 }

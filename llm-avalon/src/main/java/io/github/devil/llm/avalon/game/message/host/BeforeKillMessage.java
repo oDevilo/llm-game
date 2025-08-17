@@ -18,6 +18,10 @@ public class BeforeKillMessage extends HostMessage {
         蓝方完成任务，进入刺杀梅林环节，请红方进行讨论选择要刺杀的对象。
         """;
 
+    public BeforeKillMessage(String gameId) {
+        super(gameId);
+    }
+
     public String prompt() {
         return new PromptTemplate(promptTemplate).apply(
             Map.of()
@@ -29,6 +33,16 @@ public class BeforeKillMessage extends HostMessage {
         return new PromptTemplate(textTemplate).apply(
             Map.of()
         ).text();
+    }
+
+    @Override
+    public String type() {
+        return Type.BeforeKillMessage;
+    }
+
+    @Override
+    public MData data() {
+        return null;
     }
 
 }

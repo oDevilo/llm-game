@@ -18,7 +18,6 @@ package io.github.devil.llm.avalon.controller;
 
 import io.github.devil.llm.avalon.game.GameState;
 import io.github.devil.llm.avalon.game.service.GameService;
-import io.github.devil.llm.avalon.game.service.PlayerService;
 import io.github.devil.llm.avalon.utils.json.JacksonUtils;
 import org.bsc.langgraph4j.CompiledGraph;
 import org.bsc.langgraph4j.RunnableConfig;
@@ -35,17 +34,26 @@ public class GameController {
 
     @Resource
     private GameService gameService;
-    @Resource
-    private PlayerService playerService;
 
-    @RequestMapping("/api/v1/game/test")
-    public void test() {
-        String id = "123";
+    @RequestMapping("/api/v1/game/new")
+    public void newGame() {
+        GameState.Game game = gameService.create(5);
         RunnableConfig config = RunnableConfig.builder()
-            .threadId(id)
+            .threadId(game.getId())
             .streamMode(CompiledGraph.StreamMode.SNAPSHOTS)
             .build();
-        GameState.Game game = gameService.create(5);
+        System.out.println(JacksonUtils.toJSONString(gameService.invoke(
+            game, config
+        )));
+    }
+
+    @RequestMapping("/api/v1/game/continue")
+    public void continueGame(String id) {
+        GameState.Game game = gameService.get(id);
+        RunnableConfig config = RunnableConfig.builder()
+            .threadId(game.getId())
+            .streamMode(CompiledGraph.StreamMode.SNAPSHOTS)
+            .build();
         System.out.println(JacksonUtils.toJSONString(gameService.invoke(
             game, config
         )));

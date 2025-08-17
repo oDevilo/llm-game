@@ -11,8 +11,8 @@ import lombok.Getter;
 @Getter
 public class MissionMessage extends PlayerMessage<MissionMessage.MessageData> {
 
-    public MissionMessage(MessageData data) {
-        super(data);
+    public MissionMessage(String gamId, MessageData data) {
+        super(gamId, data);
     }
 
     @Override
@@ -25,6 +25,16 @@ public class MissionMessage extends PlayerMessage<MissionMessage.MessageData> {
     public static class MessageData extends PlayerData {
 
         private boolean success;
+    }
+
+    @Override
+    public String type() {
+        return Type.MissionMessage;
+    }
+
+    @Override
+    public MData data() {
+        return data;
     }
 
 }

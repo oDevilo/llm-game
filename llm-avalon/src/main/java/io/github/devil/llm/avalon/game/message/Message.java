@@ -1,21 +1,37 @@
 package io.github.devil.llm.avalon.game.message;
 
+import lombok.Getter;
+
 /**
  * @author Devil
  */
-public interface Message {
+@Getter
+public abstract class Message {
 
-    String text();
+    protected String gameId;
 
-    Source source();
+    public Message(String gameId) {
+        this.gameId = gameId;
+    }
 
-    enum Source {
+    public abstract String text();
+
+    public abstract Source source();
+
+    public abstract String type();
+
+    public abstract MData data();
+
+    public interface MData {
+    }
+
+    public enum Source {
         HOST, // 主持人
         PLAYER, // 玩家
         ;
     }
 
-    interface Type {
+    public interface Type {
         String AskCaptainSummaryMessage = "AskCaptainSummaryMessage";
         String AskKillMessage = "AskKillMessage";
         String AskSpeakMessage = "AskSpeakMessage";

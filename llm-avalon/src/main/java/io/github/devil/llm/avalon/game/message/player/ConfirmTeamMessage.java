@@ -13,8 +13,8 @@ import java.util.Set;
 @Getter
 public class ConfirmTeamMessage extends PlayerMessage<ConfirmTeamMessage.MessageData> {
 
-    public ConfirmTeamMessage(MessageData data) {
-        super(data);
+    public ConfirmTeamMessage(String gamId, MessageData data) {
+        super(gamId, data);
     }
 
     @Override
@@ -31,4 +31,13 @@ public class ConfirmTeamMessage extends PlayerMessage<ConfirmTeamMessage.Message
         private Set<Integer> teamNumbers;
     }
 
+    @Override
+    public String type() {
+        return Type.ConfirmTeamMessage;
+    }
+
+    @Override
+    public MData data() {
+        return data;
+    }
 }
