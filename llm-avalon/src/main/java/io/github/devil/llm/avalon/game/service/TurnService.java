@@ -8,8 +8,8 @@ import io.github.devil.llm.avalon.game.RoundState;
 import io.github.devil.llm.avalon.game.TurnState;
 import io.github.devil.llm.avalon.game.checkpoint.DBCheckpointSaver;
 import io.github.devil.llm.avalon.game.message.host.AskCaptainSummaryMessage;
-import io.github.devil.llm.avalon.game.message.host.AskSpeakMessage;
 import io.github.devil.llm.avalon.game.message.host.AskVoteMessage;
+import io.github.devil.llm.avalon.game.message.host.MissionStartMessage;
 import io.github.devil.llm.avalon.game.message.host.StartTurnMessage;
 import io.github.devil.llm.avalon.game.player.Player;
 import io.github.devil.llm.avalon.utils.json.JacksonUtils;
@@ -134,8 +134,7 @@ public class TurnService {
             // 结束
             .addEdge(TurnState.State.DRAWN.getState(), StateGraph.END)
             .addEdge(TurnState.State.MISSION_COMPLETE.getState(), StateGraph.END)
-            .addEdge(TurnState.State.MISSION_FAIL.getState(), StateGraph.END)
-            ;
+            .addEdge(TurnState.State.MISSION_FAIL.getState(), StateGraph.END);
 
         this.graph = graph.compile(CompileConfig.builder()
             .checkpointSaver(checkpointSaver)
@@ -153,7 +152,7 @@ public class TurnService {
                 new StartTurnMessage.MessageData(turn.getRound(), turn.getTurn(), turn.getCaptainNumber(), turn.getTeamNumber())
             ));
             // 确定发言顺序
-            SpeakOrder speakOrder = captain.draftTeam();
+            SpeakOrder speakOrder = captain.draftTeam(turn.getRound(), turn.getTurn(), turn.getCaptainNumber(), turn.getTeamNumber());
             List<Integer> speakers = speakers(turn.getGameId(), turn.getCaptainNumber(), speakOrder);
             turn.setUnSpeakers(speakers);
             turn.setState(TurnState.State.DRAFT_TEAM);
@@ -166,8 +165,7 @@ public class TurnService {
         return node_async(state -> {
             TurnState.Turn turn = state.turn();
             Player speaker = playerService.getByIdAndNumber(turn.getGameId(), turn.getUnSpeakers().getFirst());
-            messageService.add(new AskSpeakMessage(turn.getGameId(), new AskSpeakMessage.MessageData(speaker.getNumber())));
-            speaker.chat();
+            speaker.speak(speaker.getNumber());
             turn.getUnSpeakers().removeFirst();
             turn.setState(TurnState.State.SPEAK);
             turnEntityRepository.saveAndFlush(Converter.toEntity(turn));
@@ -180,7 +178,7 @@ public class TurnService {
             TurnState.Turn turn = state.turn();
             messageService.add(new AskCaptainSummaryMessage(turn.getGameId()));
             Player captain = playerService.getByIdAndNumber(turn.getGameId(), turn.getCaptainNumber());
-            Set<Integer> team = captain.team();
+            Set<Integer> team = captain.confirmTeam();
             turn.setTeam(team);
             turn.setState(TurnState.State.SUMMARY);
             turnEntityRepository.saveAndFlush(Converter.toEntity(turn));
@@ -194,7 +192,7 @@ public class TurnService {
             List<Player> players = playerService.getById(turn.getGameId());
             messageService.add(new AskVoteMessage(turn.getGameId(), new AskVoteMessage.MessageData(turn.getTeam())));
             for (Player player : players) {
-                boolean vote = player.vote();
+                boolean vote = player.vote(turn.getTeam());
                 turn.getVoteResult().put(player.getNumber(), vote);
             }
             turn.setState(TurnState.State.TEAM_VOTE);
@@ -206,6 +204,7 @@ public class TurnService {
     private AsyncNodeAction<TurnState> missionNode() {
         return node_async(state -> {
             TurnState.Turn turn = state.turn();
+            messageService.add(new MissionStartMessage(turn.getGameId()));
             List<Player> players = playerService.getById(turn.getGameId());
             Set<Player> teamPlayers = players.stream()
                 .filter(p -> turn.getTeam().contains(p.getNumber()))

@@ -20,43 +20,9 @@ public class StartTurnMessage extends HostMessage {
         请队长拟定队伍，并简单说明原因
         """;
 
-    // DraftTeamMessage
-    private final String promptTemplate = """
-        你是本回合队长，请拟定队伍，并简单说明原因
-
-        # 当前轮次
-        {{round}}
-
-        # 当前轮次回合
-        {{turn}}
-
-        # 当前队长
-        {{captainNumber}}号玩家
-
-        # 本轮所需出任务人数
-        {{teamNum}}
-
-        # 返回格式
-        {
-          "content": "拟定的队伍以及原因",
-          "speakOrder": "发言顺序，从顺时针`CLOCKWISE`和逆时针`COUNTERCLOCKWISE`中选取一个"
-        }
-        """;
-
     public StartTurnMessage(String gameId, MessageData data) {
         super(gameId);
         this.data = data;
-    }
-
-    public String prompt() {
-        return new PromptTemplate(promptTemplate).apply(
-            Map.of(
-                "round", data.round,
-                "turn", data.turn,
-                "captainNumber", data.captainNumber,
-                "teamNum", data.teamNum
-            )
-        ).text();
     }
 
     @Override

@@ -39,22 +39,22 @@ public abstract class Player {
      * 拟定队伍
      * @return 发言顺序 true：顺时针 false：逆时针
      */
-    public abstract SpeakOrder draftTeam();
+    public abstract SpeakOrder draftTeam(int round, int turn, int captainNumber, int teamNum);
 
     /**
      * 发言
      */
-    public abstract String chat();
+    public abstract void speak(int number);
 
     /**
      * 选出的进行任务的人员号码
      */
-    public abstract Set<Integer> team();
+    public abstract Set<Integer> confirmTeam();
 
     /**
      * 投票出任务
      */
-    public abstract boolean vote();
+    public abstract boolean vote(Set<Integer> team);
 
     /**
      * 任务成功失败

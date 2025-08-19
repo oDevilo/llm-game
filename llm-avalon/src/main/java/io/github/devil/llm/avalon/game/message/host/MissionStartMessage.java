@@ -8,13 +8,13 @@ import java.util.Map;
 /**
  * @author Devil
  */
-public class AskKillMessage extends HostMessage {
+public class MissionStartMessage extends HostMessage {
 
     private final String textTemplate = """
-        请红方刺客选择刺杀对象。
+        组队投票成功，请组队成员执行任务。
         """;
 
-    public AskKillMessage(String gameId) {
+    public MissionStartMessage(String gameId) {
         super(gameId);
     }
 
@@ -27,7 +27,7 @@ public class AskKillMessage extends HostMessage {
 
     @Override
     public String type() {
-        return Type.AskKillMessage;
+        return Type.MissionStartMessage;
     }
 
     @Override

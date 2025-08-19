@@ -34,7 +34,7 @@ public abstract class Message {
     public interface Type {
         String AskCaptainSummaryMessage = "AskCaptainSummaryMessage";
         String AskKillMessage = "AskKillMessage";
-        String AskSpeakMessage = "AskSpeakMessage";
+        String MissionStartMessage = "MissionStartMessage";
         String AskVoteMessage = "AskVoteMessage";
         String BeforeKillMessage = "BeforeKillMessage";
         String StartTurnMessage = "StartTurnMessage";

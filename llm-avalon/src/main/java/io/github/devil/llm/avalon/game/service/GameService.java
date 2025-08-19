@@ -9,7 +9,6 @@ import io.github.devil.llm.avalon.game.GameState;
 import io.github.devil.llm.avalon.game.RoundState;
 import io.github.devil.llm.avalon.game.checkpoint.DBCheckpointSaver;
 import io.github.devil.llm.avalon.game.message.host.AskKillMessage;
-import io.github.devil.llm.avalon.game.message.host.AskSpeakMessage;
 import io.github.devil.llm.avalon.game.message.host.BeforeKillMessage;
 import io.github.devil.llm.avalon.game.player.Player;
 import org.bsc.langgraph4j.CompileConfig;
@@ -141,8 +140,7 @@ public class GameService {
                 .filter(p -> p.getRole().camp == CampType.RED)
                 .toList();
             for (Player red : reds) {
-                messageService.add(new AskSpeakMessage(game.getId(), new AskSpeakMessage.MessageData(red.getNumber())));
-                red.chat();
+                red.speak(red.getNumber());
             }
             messageService.add(new AskKillMessage(game.getId()));
             Player assassin = players.stream()

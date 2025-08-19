@@ -18,34 +18,13 @@ public class TurnEndMessage extends HostMessage {
         当前是第{{round}}轮的第{{turn}}回合，本回合最终结果为{{result}}。
         """;
 
-    // DraftTeamMessage
-    private final String promptTemplate = """
-        当前是第{{round}}轮的第{{turn}}回合，本回合最终结果为{{result}}。
-        """;
-
     private final String failTextTemplate = """
-        当前是第{{round}}轮的第{{turn}}回合，本回合最终结果为{{result}}，任务失败票数{{failNumber}}。
-        """;
-
-    private final String failPromptTemplate = """
         当前是第{{round}}轮的第{{turn}}回合，本回合最终结果为{{result}}，任务失败票数{{failNumber}}。
         """;
 
     public TurnEndMessage(String gameId, MessageData data) {
         super(gameId);
         this.data = data;
-    }
-
-    public String prompt() {
-        if (data.failNumber > 0) {
-            return new PromptTemplate(failPromptTemplate).apply(
-                variables()
-            ).text();
-        } else {
-            return new PromptTemplate(promptTemplate).apply(
-                variables()
-            ).text();
-        }
     }
 
     @Override

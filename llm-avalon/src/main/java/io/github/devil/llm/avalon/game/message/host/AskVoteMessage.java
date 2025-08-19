@@ -21,33 +21,9 @@ public class AskVoteMessage extends HostMessage {
         当前队伍由{{numbers}}号玩家组成，请所有人对当前车队进行投票
         """;
 
-    // VoteMessage
-    private final String promptTemplate = """
-        当前队伍由{{numbers}}号玩家组成，请结合你的身份对当前车队进行投票
-        
-        # 返回格式
-        {
-            "agree": "是否同意，可以返回`true`或者`false`"
-        }
-        
-        # 返回示例
-        {
-            "agree": false
-        }
-        """;
-
     public AskVoteMessage(String gameId, MessageData data) {
         super(gameId);
         this.data = data;
-    }
-
-    @Override
-    public String prompt() {
-        return new PromptTemplate(promptTemplate).apply(
-            Map.of(
-                "numbers", data.team.stream().map(String::valueOf).collect(Collectors.joining("、"))
-            )
-        ).text();
     }
 
     @Override

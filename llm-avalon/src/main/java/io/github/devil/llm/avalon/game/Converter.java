@@ -10,9 +10,9 @@ import io.github.devil.llm.avalon.dao.entity.TurnEntity;
 import io.github.devil.llm.avalon.game.message.Message;
 import io.github.devil.llm.avalon.game.message.host.AskCaptainSummaryMessage;
 import io.github.devil.llm.avalon.game.message.host.AskKillMessage;
-import io.github.devil.llm.avalon.game.message.host.AskSpeakMessage;
 import io.github.devil.llm.avalon.game.message.host.AskVoteMessage;
 import io.github.devil.llm.avalon.game.message.host.BeforeKillMessage;
+import io.github.devil.llm.avalon.game.message.host.MissionStartMessage;
 import io.github.devil.llm.avalon.game.message.host.StartTurnMessage;
 import io.github.devil.llm.avalon.game.message.host.TurnEndMessage;
 import io.github.devil.llm.avalon.game.message.player.ConfirmTeamMessage;
@@ -29,6 +29,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static io.github.devil.llm.avalon.game.message.Message.Type.MissionStartMessage;
 
 /**
  * @author Devil
@@ -177,8 +179,8 @@ public class Converter {
             case Message.Type.AskKillMessage -> {
                 return new AskKillMessage(gameId);
             }
-            case Message.Type.AskSpeakMessage -> {
-                return new AskSpeakMessage(gameId, JacksonUtils.toType(data, AskSpeakMessage.MessageData.class));
+            case MissionStartMessage -> {
+                return new MissionStartMessage(gameId);
             }
             case Message.Type.AskVoteMessage -> {
                 return new AskVoteMessage(gameId, JacksonUtils.toType(data, AskVoteMessage.MessageData.class));
