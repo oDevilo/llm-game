@@ -1,6 +1,7 @@
 package io.github.devil.llm.avalon.game;
 
 import io.github.devil.llm.avalon.constants.CampType;
+import io.github.devil.llm.avalon.constants.PlayerRole;
 import io.github.devil.llm.avalon.utils.json.JacksonUtils;
 import lombok.Getter;
 import lombok.Setter;
@@ -57,7 +58,7 @@ public class GameState extends AgentState {
         /**
          * 玩家对应角色
          */
-        private Map<Integer, String> playerRoles;
+        private Map<Integer, PlayerRole> playerRoles;
         /**
          * 队长顺序 存的是用户号码
          */

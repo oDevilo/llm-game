@@ -2,6 +2,7 @@ package io.github.devil.llm.avalon.game.service;
 
 import io.github.devil.llm.avalon.constants.CampType;
 import io.github.devil.llm.avalon.constants.PlayerRole;
+import io.github.devil.llm.avalon.constants.RolePools;
 import io.github.devil.llm.avalon.dao.entity.GameEntity;
 import io.github.devil.llm.avalon.dao.repository.GameEntityRepository;
 import io.github.devil.llm.avalon.game.Converter;
@@ -25,7 +26,9 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
@@ -207,7 +210,9 @@ public class GameService {
     public GameState.Game create(int playerNumber) {
         String id = UUID.randomUUID().toString();
         // 分配角色
-        List<Player> players = playerService.createPlayers(id, playerNumber);
+        Map<Integer, PlayerRole> playerRoles = allocRoles(playerNumber);
+        // 创建玩家
+        List<Player> players = playerService.createPlayers(id, playerRoles);
 
         List<Integer> availableNumbers = players.stream()
             .map(Player::getNumber)
@@ -224,11 +229,22 @@ public class GameService {
         game.setId(id);
         game.setPlayerNumber(playerNumber);
         game.setCaptainOrder(captainOrder);
-        game.setPlayerRoles(players.stream()
-            .collect(Collectors.toMap(Player::getNumber, player -> player.getRole().value)));
-
+        game.setPlayerRoles(playerRoles);
         gameEntityRepository.saveAndFlush(Converter.toEntity(game));
         return game;
+    }
+
+    private Map<Integer, PlayerRole> allocRoles(int playerNumber) {
+        // 获取角色池
+        List<PlayerRole> rolePool = new ArrayList<>(RolePools.roles(playerNumber));
+        Map<Integer, PlayerRole> playerRoles = new HashMap<>();
+        Random random = new Random();
+        for (int i = 0; i < playerNumber; i++) {
+            int p = random.nextInt(rolePool.size());
+            PlayerRole removed = rolePool.remove(p);
+            playerRoles.put(i + 1, removed);
+        }
+        return playerRoles;
     }
 
     public GameState.Game get(String id) {

@@ -14,6 +14,7 @@ import java.util.Set;
  */
 @Getter
 public abstract class Player {
+
     protected String gameId;
     /**
      * 号码牌
@@ -32,8 +33,6 @@ public abstract class Player {
         this.role = role;
         this.messageService = messageService;
     }
-
-    public abstract void init(List<Player> players);
 
     /**
      * 拟定队伍
