@@ -125,7 +125,7 @@ public class RoundService {
     }
 
     public List<RoundState.Round> historyRounds(GameState.Game game) {
-        List<RoundEntity> entities = roundEntityRepository.findByGameId(game.getId());
+        List<RoundEntity> entities = roundEntityRepository.findById_GameId(game.getId());
         return Converter.toRounds(game, entities);
     }
 
@@ -144,16 +144,15 @@ public class RoundService {
 
         RoundEntity entity = Converter.toEntity(round);
         roundEntityRepository.saveAndFlush(entity);
-        round.setId(entity.getId());
         return round;
     }
 
     public RoundState.Round current(GameState.Game game) {
-        List<RoundEntity> entities = roundEntityRepository.findByGameId(game.getId());
+        List<RoundEntity> entities = roundEntityRepository.findById_GameId(game.getId());
         if (CollectionUtils.isEmpty(entities)) {
             return null;
         }
-        RoundEntity entity = entities.stream().max(Comparator.comparingInt(RoundEntity::getRound)).get();
+        RoundEntity entity = entities.stream().max(Comparator.comparingInt(round -> round.getId().getRound())).get();
         return Converter.toRound(game, entity);
     }
 

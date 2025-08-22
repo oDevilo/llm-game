@@ -16,17 +16,13 @@
 
 package io.github.devil.llm.avalon.dao.repository;
 
-import io.github.devil.llm.avalon.dao.entity.RoundEntity;
+import io.github.devil.llm.avalon.dao.entity.PlayerEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-
-import java.util.List;
 
 /**
  * @author Devil
  * @since 2022/7/18
  */
-public interface RoundEntityRepository extends JpaRepository<RoundEntity, RoundEntity.ID>, JpaSpecificationExecutor<RoundEntity> {
-
-    List<RoundEntity> findById_GameId(String gameId);
+public interface PlayerEntityRepository extends JpaRepository<PlayerEntity, PlayerEntity.ID>, JpaSpecificationExecutor<PlayerEntity> {
 }

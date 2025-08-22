@@ -48,8 +48,6 @@ public class TurnState extends AgentState {
     @Setter
     public static class Turn implements Serializable {
 
-        private Long id;
-
         private String gameId;
         /**
          * 第几轮

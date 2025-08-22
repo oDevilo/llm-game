@@ -81,10 +81,9 @@ public class Converter {
             return null;
         }
         RoundState.Round round = new RoundState.Round();
-        round.setId(entity.getId());
-        round.setGameId(entity.getGameId());
-        round.setRound(entity.getRound());
-        round.setTeamNum(RoundState.Round.teamNum(game.getPlayerNumber(), entity.getRound()));
+        round.setGameId(entity.getId().getGameId());
+        round.setRound(entity.getId().getRound());
+        round.setTeamNum(RoundState.Round.teamNum(game.getPlayerNumber(), entity.getId().getRound()));
         round.setPlayerNumber(game.getPlayerNumber());
         round.setCaptainOrder(game.getCaptainOrder());
         round.setState(RoundState.State.parse(entity.getState()));
@@ -96,9 +95,7 @@ public class Converter {
             return null;
         }
         RoundEntity roundEntity = new RoundEntity();
-        roundEntity.setId(round.getId());
-        roundEntity.setGameId(round.getGameId());
-        roundEntity.setRound(round.getRound());
+        roundEntity.setId(new RoundEntity.ID(round.getGameId(), round.getRound()));
         roundEntity.setState(round.getState().getState());
         return roundEntity;
     }
@@ -109,10 +106,9 @@ public class Converter {
             return null;
         }
         TurnState.Turn turn = new TurnState.Turn();
-        turn.setId(entity.getId());
-        turn.setGameId(entity.getGameId());
-        turn.setRound(entity.getRound());
-        turn.setTurn(entity.getTurn());
+        turn.setGameId(entity.getId().getGameId());
+        turn.setRound(entity.getId().getRound());
+        turn.setTurn(entity.getId().getTurn());
         turn.setCaptainNumber(entity.getCaptainNumber());
         turn.setTeamNumber(round.getTeamNum());
         turn.setUnSpeakers(JacksonUtils.toType(entity.getUnSpeakers(), new TypeReference<>() {
@@ -132,10 +128,7 @@ public class Converter {
             return null;
         }
         TurnEntity turnEntity = new TurnEntity();
-        turnEntity.setId(turn.getId());
-        turnEntity.setGameId(turn.getGameId());
-        turnEntity.setRound(turn.getRound());
-        turnEntity.setTurn(turn.getTurn());
+        turnEntity.setId(new TurnEntity.ID(turn.getGameId(), turn.getRound(), turn.getTurn()));
         turnEntity.setCaptainNumber(turn.getCaptainNumber());
         turnEntity.setUnSpeakers(JacksonUtils.toJSONString(turn.getUnSpeakers()));
         turnEntity.setTeam(JacksonUtils.toJSONString(turn.getTeam()));

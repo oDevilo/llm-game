@@ -26,9 +26,9 @@ import java.util.List;
  * @author Devil
  * @since 2022/7/18
  */
-public interface TurnEntityRepository extends JpaRepository<TurnEntity, Long>, JpaSpecificationExecutor<TurnEntity> {
+public interface TurnEntityRepository extends JpaRepository<TurnEntity, TurnEntity.ID>, JpaSpecificationExecutor<TurnEntity> {
 
-    List<TurnEntity> findByGameIdAndRound(String gameId, int round);
+    List<TurnEntity> findById_GameIdAndId_Round(String gameId, int round);
 
-    List<TurnEntity> findByGameId(String gameId);
+    List<TurnEntity> findById_GameId(String gameId);
 }

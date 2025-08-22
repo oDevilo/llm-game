@@ -26,4 +26,5 @@ public interface TableConstants {
     String TURN = AVALON + "turn";
     String MESSAGE = AVALON + "message";
     String CHECKPOINT = AVALON + "checkpoint";
+    String PLAYER = AVALON + "player";
 }

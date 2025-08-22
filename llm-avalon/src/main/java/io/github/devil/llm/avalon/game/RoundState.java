@@ -44,8 +44,6 @@ public class RoundState extends AgentState {
     @Setter
     public static class Round implements Serializable {
 
-        private Long id;
-
         private String gameId;
         /**
          * 第几轮

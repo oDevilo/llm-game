@@ -1,6 +1,8 @@
 package io.github.devil.llm.avalon.game.player.ai;
 
+import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.input.PromptTemplate;
 import io.github.devil.llm.avalon.constants.CampType;
@@ -19,6 +21,8 @@ import io.github.devil.llm.avalon.utils.LLMUtils;
 import io.github.devil.llm.avalon.utils.json.JacksonUtils;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -134,107 +138,109 @@ public abstract class AIPlayer extends Player {
     }
 
     private String chat(String input) {
-        return chatModel.chat(input);
+        List<ChatMessage> messages = new ArrayList<>();
+        messages.add(systemMessage);
+        messages.add(UserMessage.from(input));
+        return chatModel.chat(messages).aiMessage().text();
     }
 
     protected abstract SystemMessage systemMessage(String gameId, int number, Map<Integer, PlayerRole> roles);
 
     protected String draftTeamPromptTemplate() {
         return """
-        你是本回合队长，请拟定队伍，并简单说明原因
-        
-        # 当前轮次
-        {{round}}
-        
-        # 当前轮次回合
-        {{turn}}
-        
-        # 当前队长
-        {{captainNumber}}号玩家
-        
-        # 本轮所需出任务人数
-        {{teamNum}}
-        
-        # 返回格式
-        {
-          "content": "拟定的队伍以及原因",
-          "speakOrder": "发言顺序，从顺时针`CLOCKWISE`和逆时针`COUNTERCLOCKWISE`中选取一个"
-        }
-        """;
+            你是本回合队长，请拟定队伍，并简单说明原因
+            
+            # 当前轮次
+            {{round}}
+            
+            # 当前轮次回合
+            {{turn}}
+            
+            # 当前队长
+            {{captainNumber}}号玩家
+            
+            # 本轮所需出任务人数
+            {{teamNum}}
+            
+            # 返回格式
+            {
+              "content": "拟定的队伍以及原因",
+              "speakOrder": "发言顺序，从顺时针`CLOCKWISE`和逆时针`COUNTERCLOCKWISE`中选取一个"
+            }
+            """;
     }
 
     protected String speakPromptTemplate() {
         return """
-        下面请{{number}}号玩家发言
-        
-        # 返回格式
-        {
-            "thinking": "思考过程",
-            "speak": "发言内容",
-        }
-        """;
+            下面请{{number}}号玩家发言
+            
+            # 返回格式
+            {
+                "thinking": "思考过程",
+                "speak": "发言内容",
+            }
+            """;
     }
 
     protected String confirmTeamPromptTemplate() {
         return """
-        请队长进行总结发言，并请确认最终车队人员
-        
-        # 返回格式
-        {
-            "content": "发言内容"
-            "teamNumbers": [1, 2, 3]
-        }
-        """;
+            请队长进行总结发言，并请确认最终车队人员
+            
+            # 返回格式
+            {
+                "content": "发言内容"
+                "teamNumbers": [1, 2, 3]
+            }
+            """;
     }
 
     protected String votePromptTemplate() {
         return """
-        当前队伍由{{numbers}}号玩家组成，请结合你的身份对当前车队进行投票
-        
-        # 返回格式
-        {
-            "agree": "是否同意，可以返回`true`或者`false`"
-        }
-        
-        # 返回示例
-        {
-            "agree": false
-        }
-        """;
+            当前队伍由{{numbers}}号玩家组成，请结合你的身份对当前车队进行投票
+            
+            # 返回格式
+            {
+                "agree": "是否同意，可以返回`true`或者`false`"
+            }
+            
+            # 返回示例
+            {
+                "agree": false
+            }
+            """;
     }
 
     protected String missionPromptTemplate() {
         return """
-        作为红方成员，你可以根据自己场上的局势来决定让本次任务执行成功或者失败
-        
-        # 返回格式
-        {
-            "success": "是否使任务成功，成功返回`true` 希望任务失败返回`false`"
-        }
-        
-        # 返回示例
-        {
-            "success": false
-        }
-        """;
+            作为红方成员，你可以根据自己场上的局势来决定让本次任务执行成功或者失败
+            
+            # 返回格式
+            {
+                "success": "是否使任务成功，成功返回`true` 希望任务失败返回`false`"
+            }
+            
+            # 返回示例
+            {
+                "success": false
+            }
+            """;
     }
 
     protected String killPromptTemplate() {
         return """
-        请红方刺客选择刺杀对象。
-        
-        # 返回格式
-        {
-            "killNumber": "想要刺杀的玩家号码"
-        }
-        
-        # 返回示例
-        {
-            "killNumber": 1
-        }
-        """;
+            请红方刺客选择刺杀对象。
+            
+            # 返回格式
+            {
+                "killNumber": "想要刺杀的玩家号码"
+            }
+            
+            # 返回示例
+            {
+                "killNumber": 1
+            }
+            """;
     }
-
 
 
     private <T> T execute(Callable<T> task) {

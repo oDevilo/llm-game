@@ -11,8 +11,6 @@ import org.hibernate.annotations.DynamicUpdate;
 import javax.persistence.Embeddable;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import java.io.Serializable;
@@ -22,21 +20,26 @@ import java.io.Serializable;
  */
 @Setter
 @Getter
-@Table(name = TableConstants.ROUND)
+@Table(name = TableConstants.PLAYER)
 @Entity
 @DynamicInsert
 @DynamicUpdate
-public class RoundEntity extends BaseEntity {
+public class PlayerEntity extends BaseEntity {
 
     @EmbeddedId
     private ID id;
 
-    private String state;
+    private String role;
+    /**
+     * 推理
+     */
+    private String reasoning;
 
     @Override
     public Object getUid() {
         return id;
     }
+
 
     @Getter
     @NoArgsConstructor
@@ -45,8 +48,9 @@ public class RoundEntity extends BaseEntity {
     public static class ID implements Serializable {
 
         private String gameId;
-
-        private Integer round;
+        /**
+         * 号码
+         */
+        private Integer number;
     }
-
 }

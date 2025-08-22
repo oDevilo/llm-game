@@ -266,7 +266,7 @@ public class TurnService {
 
     public TurnState.Turn create(RoundState.Round round, TurnState.Turn preTurn) {
         // 获取历史turn，判断是第几个
-        List<TurnEntity> entities = turnEntityRepository.findByGameId(round.getGameId());
+        List<TurnEntity> entities = turnEntityRepository.findById_GameId(round.getGameId());
         int pos = (entities == null ? Collections.emptyList() : entities).size();
         int t = (preTurn == null ? 0 : preTurn.getTurn()) + 1;
         TurnState.Turn turn = new TurnState.Turn();
@@ -278,7 +278,6 @@ public class TurnService {
 
         TurnEntity entity = Converter.toEntity(turn);
         turnEntityRepository.saveAndFlush(entity);
-        turn.setId(entity.getId());
         return turn;
     }
 
@@ -291,11 +290,11 @@ public class TurnService {
     }
 
     public TurnState.Turn current(RoundState.Round round) {
-        List<TurnEntity> entities = turnEntityRepository.findByGameIdAndRound(round.getGameId(), round.getRound());
+        List<TurnEntity> entities = turnEntityRepository.findById_GameIdAndId_Round(round.getGameId(), round.getRound());
         if (CollectionUtils.isEmpty(entities)) {
             return null;
         }
-        TurnEntity entity = entities.stream().max(Comparator.comparingInt(TurnEntity::getTurn)).get();
+        TurnEntity entity = entities.stream().max(Comparator.comparingInt(turn -> turn.getId().getTurn())).get();
         return Converter.toTurn(round, entity);
     }
 
