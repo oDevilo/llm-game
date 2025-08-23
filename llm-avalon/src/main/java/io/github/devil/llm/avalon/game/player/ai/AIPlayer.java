@@ -1,5 +1,6 @@
 package io.github.devil.llm.avalon.game.player.ai;
 
+import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
@@ -8,6 +9,8 @@ import dev.langchain4j.model.input.PromptTemplate;
 import io.github.devil.llm.avalon.constants.CampType;
 import io.github.devil.llm.avalon.constants.PlayerRole;
 import io.github.devil.llm.avalon.constants.SpeakOrder;
+import io.github.devil.llm.avalon.game.message.Message;
+import io.github.devil.llm.avalon.game.message.PlayerMessage;
 import io.github.devil.llm.avalon.game.message.player.ConfirmTeamMessage;
 import io.github.devil.llm.avalon.game.message.player.DraftTeamMessage;
 import io.github.devil.llm.avalon.game.message.player.KillResultMessage;
@@ -138,8 +141,28 @@ public abstract class AIPlayer extends Player {
     }
 
     private String chat(String input) {
+        // 系统消息
         List<ChatMessage> messages = new ArrayList<>();
         messages.add(systemMessage);
+        // 历史消息
+        List<Message> historyMessages = messageService.messages(gameId);
+        for (Message message : historyMessages) {
+            if (Message.Source.HOST == message.source()) {
+                messages.add(UserMessage.from(message.text()));
+            } else {
+                PlayerMessage<?> playerMessage = (PlayerMessage<?>) message;
+                if (number == playerMessage.getData().getNumber()) {
+                    messages.add(AiMessage.from(message.text()));
+                } else {
+                    // 对于部分消息要进行过滤
+                    if ((playerMessage instanceof VoteMessage) || (playerMessage instanceof MissionMessage)) {
+                        continue;
+                    }
+                    messages.add(UserMessage.from(playerMessage.getData().getNumber() + "号玩家：" + message.text()));
+                }
+            }
+        }
+        // 本次输入
         messages.add(UserMessage.from(input));
         return chatModel.chat(messages).aiMessage().text();
     }

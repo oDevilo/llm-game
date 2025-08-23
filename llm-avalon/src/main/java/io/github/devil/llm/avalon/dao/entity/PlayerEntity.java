@@ -33,7 +33,7 @@ public class PlayerEntity extends BaseEntity {
     /**
      * 推理
      */
-    private String reasoning;
+    private String thinking;
 
     @Override
     public Object getUid() {
