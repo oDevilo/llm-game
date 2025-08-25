@@ -11,8 +11,8 @@ import lombok.Getter;
 @Getter
 public class VoteMessage extends PlayerMessage<VoteMessage.MessageData> {
 
-    public VoteMessage(String gamId, MessageData data) {
-        super(gamId, data);
+    public VoteMessage(String gameId, Integer round, Integer turn, MessageData data) {
+        super(gameId, round, turn, data);
     }
 
     @Override

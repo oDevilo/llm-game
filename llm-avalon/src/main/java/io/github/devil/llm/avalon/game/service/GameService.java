@@ -143,7 +143,7 @@ public class GameService {
                 .filter(p -> p.getRole().camp == CampType.RED)
                 .toList();
             for (Player red : reds) {
-                red.speak(red.getNumber());
+                red.killSpeak(red.getNumber());
             }
             messageService.add(new AskKillMessage(game.getId()));
             Player assassin = players.stream()

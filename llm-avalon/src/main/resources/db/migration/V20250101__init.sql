@@ -50,14 +50,17 @@ CREATE TABLE `llm_avalon_message`
 (
     `id`         bigint unsigned NOT NULL AUTO_INCREMENT,
     `game_id`    varchar(64)     NOT NULL,
+    `round`      int             NOT NULL DEFAULT 0,
+    `turn`       int             NOT NULL DEFAULT 0,
     `type`       varchar(64)     NOT NULL,
     `source`     varchar(64)     NOT NULL,
+    `text`       TEXT,
     `data`       TEXT,
     `is_deleted` bit(1)          NOT NULL DEFAULT 0,
     `created_at` datetime        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` datetime        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    KEY `idx_game` (`game_id`)
+    KEY `idx_game` (`game_id`, `round`, `turn`)
 );
 
 CREATE TABLE `llm_avalon_checkpoint`
@@ -74,5 +77,32 @@ CREATE TABLE `llm_avalon_checkpoint`
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_checkpoint` (`checkpoint_id`),
     KEY `idx_thread` (`thread_id`)
+);
+
+CREATE TABLE `llm_avalon_player`
+(
+    `id`         bigint unsigned NOT NULL AUTO_INCREMENT,
+    `game_id`    varchar(64)     NOT NULL,
+    `number`     int             NOT NULL DEFAULT 0,
+    `role`       varchar(64)     NOT NULL,
+    `thinking`   TEXT,
+    `is_deleted` bit(1)          NOT NULL DEFAULT 0,
+    `created_at` datetime        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` datetime        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_player` (`game_id`, `number`)
+);
+
+CREATE TABLE `llm_avalon_ai_chat`
+(
+    `id`         bigint unsigned NOT NULL AUTO_INCREMENT,
+    `game_id`    varchar(64)     NOT NULL,
+    `messages`   TEXT,
+    `text`       TEXT,
+    `is_deleted` bit(1)          NOT NULL DEFAULT 0,
+    `created_at` datetime        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` datetime        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_chat_game` (`game_id`)
 );
 

@@ -13,8 +13,8 @@ import java.util.Map;
  */
 public class LoyalMinisterAIPlayer extends AIPlayer {
 
-    public LoyalMinisterAIPlayer(String gameId, int number, PlayerRole role, MessageService messageService, Map<Integer, PlayerRole> roles) {
-        super(gameId, number, role, messageService, roles);
+    public LoyalMinisterAIPlayer(String gameId, int number, PlayerRole role, Map<Integer, PlayerRole> roles, AIComponent aiComponent) {
+        super(gameId, number, role, roles, aiComponent);
     }
 
     @Override

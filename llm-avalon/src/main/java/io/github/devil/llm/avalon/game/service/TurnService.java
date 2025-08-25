@@ -148,7 +148,7 @@ public class TurnService {
             // 队长发言，拟定队伍，决定发言顺序
             Player captain = playerService.getByIdAndNumber(turn.getGameId(), turn.getCaptainNumber());
             messageService.add(new StartTurnMessage(
-                turn.getGameId(),
+                turn.getGameId(), turn.getRound(), turn.getTurn(),
                 new StartTurnMessage.MessageData(turn.getRound(), turn.getTurn(), turn.getCaptainNumber(), turn.getTeamNumber())
             ));
             // 确定发言顺序
@@ -165,7 +165,7 @@ public class TurnService {
         return node_async(state -> {
             TurnState.Turn turn = state.turn();
             Player speaker = playerService.getByIdAndNumber(turn.getGameId(), turn.getUnSpeakers().getFirst());
-            speaker.speak(speaker.getNumber());
+            speaker.speak(turn.getRound(), turn.getTurn(), speaker.getNumber());
             turn.getUnSpeakers().removeFirst();
             turn.setState(TurnState.State.SPEAK);
             turnEntityRepository.saveAndFlush(Converter.toEntity(turn));
@@ -176,9 +176,9 @@ public class TurnService {
     private AsyncNodeAction<TurnState> summaryNode() {
         return node_async(state -> {
             TurnState.Turn turn = state.turn();
-            messageService.add(new AskCaptainSummaryMessage(turn.getGameId()));
+            messageService.add(new AskCaptainSummaryMessage(turn.getGameId(), turn.getRound(), turn.getTurn()));
             Player captain = playerService.getByIdAndNumber(turn.getGameId(), turn.getCaptainNumber());
-            Set<Integer> team = captain.confirmTeam();
+            Set<Integer> team = captain.confirmTeam(turn.getRound(), turn.getTurn());
             turn.setTeam(team);
             turn.setState(TurnState.State.SUMMARY);
             turnEntityRepository.saveAndFlush(Converter.toEntity(turn));
@@ -190,9 +190,11 @@ public class TurnService {
         return node_async(state -> {
             TurnState.Turn turn = state.turn();
             List<Player> players = playerService.getById(turn.getGameId());
-            messageService.add(new AskVoteMessage(turn.getGameId(), new AskVoteMessage.MessageData(turn.getTeam())));
+            messageService.add(new AskVoteMessage(turn.getGameId(), turn.getRound(), turn.getTurn(),
+                new AskVoteMessage.MessageData(turn.getTeam()))
+            );
             for (Player player : players) {
-                boolean vote = player.vote(turn.getTeam());
+                boolean vote = player.vote(turn.getRound(), turn.getTurn(), turn.getTeam());
                 turn.getVoteResult().put(player.getNumber(), vote);
             }
             turn.setState(TurnState.State.TEAM_VOTE);
@@ -204,13 +206,13 @@ public class TurnService {
     private AsyncNodeAction<TurnState> missionNode() {
         return node_async(state -> {
             TurnState.Turn turn = state.turn();
-            messageService.add(new MissionStartMessage(turn.getGameId()));
+            messageService.add(new MissionStartMessage(turn.getGameId(), turn.getRound(), turn.getTurn()));
             List<Player> players = playerService.getById(turn.getGameId());
             Set<Player> teamPlayers = players.stream()
                 .filter(p -> turn.getTeam().contains(p.getNumber()))
                 .collect(Collectors.toSet());
             for (Player teamPlayer : teamPlayers) {
-                boolean mission = teamPlayer.mission();
+                boolean mission = teamPlayer.mission(turn.getRound(), turn.getTurn());
                 turn.getMissionResult().put(teamPlayer.getNumber(), mission);
             }
             turn.setState(TurnState.State.MISSION);

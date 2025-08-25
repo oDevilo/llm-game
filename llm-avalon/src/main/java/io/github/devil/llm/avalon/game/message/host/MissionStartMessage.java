@@ -14,8 +14,8 @@ public class MissionStartMessage extends HostMessage {
         组队投票成功，请组队成员执行任务。
         """;
 
-    public MissionStartMessage(String gameId) {
-        super(gameId);
+    public MissionStartMessage(String gameId, Integer round, Integer turn) {
+        super(gameId, round, turn);
     }
 
     @Override

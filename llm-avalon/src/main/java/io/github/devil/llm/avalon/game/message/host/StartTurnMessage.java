@@ -20,8 +20,8 @@ public class StartTurnMessage extends HostMessage {
         请队长拟定队伍，并简单说明原因
         """;
 
-    public StartTurnMessage(String gameId, MessageData data) {
-        super(gameId);
+    public StartTurnMessage(String gameId, Integer round, Integer turn, MessageData data) {
+        super(gameId, round, turn);
         this.data = data;
     }
 

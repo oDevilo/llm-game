@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package io.github.devil.llm.avalon.dao;
+package io.github.devil.llm.avalon.dao.repository;
+
+import io.github.devil.llm.avalon.dao.entity.AIChatEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 /**
  * @author Devil
+ * @since 2022/7/18
  */
-public interface TableConstants {
-    String AVALON = "llm_avalon_";
-    String GAME = AVALON + "game";
-    String ROUND = AVALON + "round";
-    String TURN = AVALON + "turn";
-    String MESSAGE = AVALON + "message";
-    String CHECKPOINT = AVALON + "checkpoint";
-    String PLAYER = AVALON + "player";
-    String AI_CHAT = AVALON + "ai_chat";
+public interface AIChatEntityRepository extends JpaRepository<AIChatEntity, Long>, JpaSpecificationExecutor<AIChatEntity> {
 }

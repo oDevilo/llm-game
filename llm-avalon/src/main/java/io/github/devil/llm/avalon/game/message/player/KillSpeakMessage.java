@@ -9,10 +9,10 @@ import lombok.Getter;
  * @author Devil
  */
 @Getter
-public class PlayerChatMessage extends PlayerMessage<PlayerChatMessage.MessageData> {
+public class KillSpeakMessage extends PlayerMessage<KillSpeakMessage.MessageData> {
 
-    public PlayerChatMessage(String gamId, MessageData data) {
-        super(gamId, data);
+    public KillSpeakMessage(String gameId, MessageData data) {
+        super(gameId, data);
     }
 
     @Override
@@ -31,7 +31,7 @@ public class PlayerChatMessage extends PlayerMessage<PlayerChatMessage.MessageDa
 
     @Override
     public String type() {
-        return Type.PlayerChatMessage;
+        return Type.KillSpeakMessage;
     }
 
     @Override

@@ -17,11 +17,11 @@ import javax.persistence.Table;
  */
 @Setter
 @Getter
-@Table(name = TableConstants.MESSAGE)
+@Table(name = TableConstants.AI_CHAT)
 @Entity
 @DynamicInsert
 @DynamicUpdate
-public class MessageEntity extends BaseEntity {
+public class AIChatEntity extends BaseEntity {
 
     /**
      * 数据库自增id
@@ -32,17 +32,9 @@ public class MessageEntity extends BaseEntity {
 
     private String gameId;
 
-    private Integer round;
-
-    private Integer turn;
-
-    private String type;
-
-    private String source;
+    private String messages;
 
     private String text;
-
-    private String data;
 
     @Override
     public Object getUid() {

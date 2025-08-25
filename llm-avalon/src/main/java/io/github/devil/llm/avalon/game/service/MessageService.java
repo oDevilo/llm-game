@@ -3,7 +3,6 @@ package io.github.devil.llm.avalon.game.service;
 import io.github.devil.llm.avalon.dao.entity.MessageEntity;
 import io.github.devil.llm.avalon.dao.repository.MessageEntityRepository;
 import io.github.devil.llm.avalon.game.Converter;
-import io.github.devil.llm.avalon.game.message.HostMessage;
 import io.github.devil.llm.avalon.game.message.Message;
 import org.springframework.stereotype.Service;
 
@@ -28,18 +27,9 @@ public class MessageService {
         return Converter.toMessages(entities);
     }
 
-    public HostMessage lastHostMessage(String gameId) {
-        List<MessageEntity> entities = messageEntityRepository.findByGameId(gameId);
-        MessageEntity hostEntity = null;
-        for (int i = entities.size() - 1; i >= 0; i--) {
-            MessageEntity entity = entities.get(i);
-            if (!Message.Source.HOST.name().equalsIgnoreCase(entity.getSource())) {
-                continue;
-            }
-            hostEntity = entity;
-            break;
-        }
-        return (HostMessage) Converter.toMessage(hostEntity);
+    public List<Message> messages(String gameId, Integer round, Integer turn) {
+        List<MessageEntity> entities = messageEntityRepository.findByGameIdAndRoundAndTurn(gameId, round, turn);
+        return Converter.toMessages(entities);
     }
 
 }

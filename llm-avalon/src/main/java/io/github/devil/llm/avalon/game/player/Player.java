@@ -43,22 +43,32 @@ public abstract class Player {
     /**
      * 发言
      */
-    public abstract void speak(int number);
+    public abstract void speak(int round, int turn, int number);
 
     /**
      * 选出的进行任务的人员号码
      */
-    public abstract Set<Integer> confirmTeam();
+    public abstract Set<Integer> confirmTeam(int round, int turn);
 
     /**
      * 投票出任务
      */
-    public abstract boolean vote(Set<Integer> team);
+    public abstract boolean vote(int round, int turn, Set<Integer> team);
 
     /**
      * 任务成功失败
      */
-    public abstract boolean mission();
+    public abstract boolean mission(int round, int turn);
+
+    /**
+     * 推理
+     */
+    public abstract void thinking(int round, int turn);
+
+    /**
+     * 发言
+     */
+    public abstract void killSpeak(int number);
 
     /**
      * 刺杀

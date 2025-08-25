@@ -14,15 +14,15 @@ import java.util.stream.Collectors;
  */
 public class MorganaAIPlayer extends AIPlayer {
 
-    public MorganaAIPlayer(String gameId, int number, PlayerRole role, MessageService messageService, Map<Integer, PlayerRole> roles) {
-        super(gameId, number, role, messageService, roles);
+    public MorganaAIPlayer(String gameId, int number, PlayerRole role, Map<Integer, PlayerRole> roles, AIComponent aiComponent) {
+        super(gameId, number, role, roles, aiComponent);
     }
 
     @Override
     protected SystemMessage systemMessage(String gameId, int number, Map<Integer, PlayerRole> roles) {
                 String playerNumbers = roles.entrySet().stream()
             .filter(p -> PlayerRole.MORGANA == p.getValue() || PlayerRole.ASSASSIN == p.getValue()
-                || PlayerRole.MORDRED == p.getValue() || PlayerRole.CLAWS == p.getValue())
+                || PlayerRole.MORDRED == p.getValue() || PlayerRole.OBERON == p.getValue())
             .map(p -> String.valueOf(p.getKey()))
             .collect(Collectors.joining("、"));
         Map<String, Object> variables = new HashMap<>();
@@ -38,6 +38,7 @@ public class MorganaAIPlayer extends AIPlayer {
             
             # 注意
             - 由于`派西维尔`可以看到你和`梅林`，所以你要伪装，让他更相信你是`梅林`
+            - 不要随意暴露自己的红方身份，伪装成蓝方迷惑对手
             
             {{RULE}}
             """).apply(variables).text();

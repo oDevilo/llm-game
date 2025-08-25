@@ -10,8 +10,18 @@ public abstract class Message {
 
     protected String gameId;
 
+    protected Integer round;
+
+    protected Integer turn;
+
     public Message(String gameId) {
         this.gameId = gameId;
+    }
+
+    public Message(String gameId, Integer round, Integer turn) {
+        this.gameId = gameId;
+        this.round = round;
+        this.turn = turn;
     }
 
     public abstract String text();
@@ -43,8 +53,9 @@ public abstract class Message {
         String ConfirmTeamMessage = "ConfirmTeamMessage";
         String DraftTeamMessage = "DraftTeamMessage";
         String KillResultMessage = "KillResultMessage";
+        String KillSpeakMessage = "KillSpeakMessage";
         String MissionMessage = "MissionMessage";
-        String PlayerChatMessage = "PlayerChatMessage";
+        String SpeakMessage = "SpeakMessage";
         String VoteMessage = "VoteMessage";
     }
 }

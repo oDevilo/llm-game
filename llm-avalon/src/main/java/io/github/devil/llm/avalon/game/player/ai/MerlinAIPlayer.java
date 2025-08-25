@@ -3,7 +3,6 @@ package io.github.devil.llm.avalon.game.player.ai;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.model.input.PromptTemplate;
 import io.github.devil.llm.avalon.constants.PlayerRole;
-import io.github.devil.llm.avalon.game.service.MessageService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,8 +13,8 @@ import java.util.stream.Collectors;
  */
 public class MerlinAIPlayer extends AIPlayer {
 
-    public MerlinAIPlayer(String gameId, int number, PlayerRole role, MessageService messageService, Map<Integer, PlayerRole> roles) {
-        super(gameId, number, role, messageService, roles);
+    public MerlinAIPlayer(String gameId, int number, PlayerRole role, Map<Integer, PlayerRole> roles, AIComponent aiComponent) {
+        super(gameId, number, role, roles, aiComponent);
     }
 
     @Override

@@ -16,6 +16,11 @@ public abstract class PlayerMessage<T extends PlayerMessage.PlayerData> extends 
         this.data = data;
     }
 
+    public PlayerMessage(String gameId, Integer round, Integer turn, T data) {
+        super(gameId, round, turn);
+        this.data = data;
+    }
+
     @Override
     public Source source() {
         return Source.PLAYER;

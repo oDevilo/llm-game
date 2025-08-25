@@ -5,35 +5,33 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import java.util.Set;
-
 /**
  * @author Devil
  */
 @Getter
-public class ConfirmTeamMessage extends PlayerMessage<ConfirmTeamMessage.MessageData> {
+public class SpeakMessage extends PlayerMessage<SpeakMessage.MessageData> {
 
-    public ConfirmTeamMessage(String gameId, Integer round, Integer turn, MessageData data) {
+    public SpeakMessage(String gameId, Integer round, Integer turn, MessageData data) {
         super(gameId, round, turn, data);
     }
 
     @Override
     public String text() {
-        return data.content;
+        return data.speak;
     }
 
     @EqualsAndHashCode(callSuper = true)
     @Data
     public static class MessageData extends PlayerData {
 
-        private String content;
+        private String thinking;
 
-        private Set<Integer> teamNumbers;
+        private String speak;
     }
 
     @Override
     public String type() {
-        return Type.ConfirmTeamMessage;
+        return Type.SpeakMessage;
     }
 
     @Override

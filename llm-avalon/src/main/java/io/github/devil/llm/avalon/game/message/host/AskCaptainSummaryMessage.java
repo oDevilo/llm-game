@@ -14,8 +14,8 @@ public class AskCaptainSummaryMessage extends HostMessage {
         请队长进行总结发言，并请确认最终车队人员
         """;
 
-    public AskCaptainSummaryMessage(String gameId) {
-        super(gameId);
+    public AskCaptainSummaryMessage(String gameId, Integer round, Integer turn) {
+        super(gameId, round, turn);
     }
 
 

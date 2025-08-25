@@ -11,8 +11,8 @@ import lombok.Getter;
 @Getter
 public class DraftTeamMessage extends PlayerMessage<DraftTeamMessage.MessageData> {
 
-    public DraftTeamMessage(String gamId, MessageData data) {
-        super(gamId, data);
+    public DraftTeamMessage(String gameId, Integer round, Integer turn, MessageData data) {
+        super(gameId, round, turn, data);
     }
 
     @Override

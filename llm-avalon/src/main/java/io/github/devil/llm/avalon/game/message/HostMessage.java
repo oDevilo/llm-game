@@ -9,6 +9,10 @@ public abstract class HostMessage extends Message {
         super(gameId);
     }
 
+    public HostMessage(String gameId, Integer round, Integer turn) {
+        super(gameId, round, turn);
+    }
+
     @Override
     public Message.Source source() {
         return Source.HOST;

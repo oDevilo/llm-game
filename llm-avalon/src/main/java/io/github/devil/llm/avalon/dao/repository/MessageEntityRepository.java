@@ -29,4 +29,6 @@ import java.util.List;
 public interface MessageEntityRepository extends JpaRepository<MessageEntity, Long>, JpaSpecificationExecutor<MessageEntity> {
 
     List<MessageEntity> findByGameId(String gameId);
+
+    List<MessageEntity> findByGameIdAndRoundAndTurn(String gameId, Integer round, Integer turn);
 }

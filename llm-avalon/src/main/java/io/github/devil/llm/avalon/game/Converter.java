@@ -18,8 +18,9 @@ import io.github.devil.llm.avalon.game.message.host.TurnEndMessage;
 import io.github.devil.llm.avalon.game.message.player.ConfirmTeamMessage;
 import io.github.devil.llm.avalon.game.message.player.DraftTeamMessage;
 import io.github.devil.llm.avalon.game.message.player.KillResultMessage;
+import io.github.devil.llm.avalon.game.message.player.KillSpeakMessage;
 import io.github.devil.llm.avalon.game.message.player.MissionMessage;
-import io.github.devil.llm.avalon.game.message.player.PlayerChatMessage;
+import io.github.devil.llm.avalon.game.message.player.SpeakMessage;
 import io.github.devil.llm.avalon.game.message.player.VoteMessage;
 import io.github.devil.llm.avalon.utils.json.JacksonUtils;
 import org.apache.commons.collections4.CollectionUtils;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static io.github.devil.llm.avalon.game.message.Message.Type.KillSpeakMessage;
 import static io.github.devil.llm.avalon.game.message.Message.Type.MissionStartMessage;
 
 /**
@@ -145,8 +147,11 @@ public class Converter {
         }
         MessageEntity messageEntity = new MessageEntity();
         messageEntity.setGameId(message.getGameId());
+        messageEntity.setRound(message.getRound());
+        messageEntity.setTurn(message.getTurn());
         messageEntity.setSource(message.source().name());
         messageEntity.setType(message.type());
+        messageEntity.setText(message.text());
         messageEntity.setData(message.data() == null ? "" : JacksonUtils.toJSONString(message.data()));
         return messageEntity;
     }
@@ -164,47 +169,52 @@ public class Converter {
         }
         String type = entity.getType();
         String gameId = entity.getGameId();
+        Integer round = entity.getRound();
+        Integer turn = entity.getTurn();
         String data = entity.getData();
         switch (type) {
             case Message.Type.AskCaptainSummaryMessage -> {
-                return new AskCaptainSummaryMessage(gameId);
+                return new AskCaptainSummaryMessage(gameId, round, turn);
             }
             case Message.Type.AskKillMessage -> {
                 return new AskKillMessage(gameId);
             }
             case MissionStartMessage -> {
-                return new MissionStartMessage(gameId);
+                return new MissionStartMessage(gameId, round, turn);
             }
             case Message.Type.AskVoteMessage -> {
-                return new AskVoteMessage(gameId, JacksonUtils.toType(data, AskVoteMessage.MessageData.class));
+                return new AskVoteMessage(gameId, round, turn, JacksonUtils.toType(data, AskVoteMessage.MessageData.class));
             }
             case Message.Type.BeforeKillMessage -> {
                 return new BeforeKillMessage(gameId);
             }
             case Message.Type.StartTurnMessage -> {
-                return new StartTurnMessage(gameId, JacksonUtils.toType(data, StartTurnMessage.MessageData.class));
+                return new StartTurnMessage(gameId, round, turn, JacksonUtils.toType(data, StartTurnMessage.MessageData.class));
             }
             case Message.Type.TurnEndMessage -> {
                 return new TurnEndMessage(gameId, JacksonUtils.toType(data, TurnEndMessage.MessageData.class));
             }
 
             case Message.Type.ConfirmTeamMessage -> {
-                return new ConfirmTeamMessage(gameId, JacksonUtils.toType(data, ConfirmTeamMessage.MessageData.class));
+                return new ConfirmTeamMessage(gameId, round, turn, JacksonUtils.toType(data, ConfirmTeamMessage.MessageData.class));
             }
             case Message.Type.DraftTeamMessage -> {
-                return new DraftTeamMessage(gameId, JacksonUtils.toType(data, DraftTeamMessage.MessageData.class));
+                return new DraftTeamMessage(gameId, round, turn, JacksonUtils.toType(data, DraftTeamMessage.MessageData.class));
             }
             case Message.Type.KillResultMessage -> {
                 return new KillResultMessage(gameId, JacksonUtils.toType(data, KillResultMessage.MessageData.class));
             }
-            case Message.Type.MissionMessage -> {
-                return new MissionMessage(gameId, JacksonUtils.toType(data, MissionMessage.MessageData.class));
+            case KillSpeakMessage -> {
+                return new KillSpeakMessage(gameId, JacksonUtils.toType(data, KillSpeakMessage.MessageData.class));
             }
-            case Message.Type.PlayerChatMessage -> {
-                return new PlayerChatMessage(gameId, JacksonUtils.toType(data, PlayerChatMessage.MessageData.class));
+            case Message.Type.MissionMessage -> {
+                return new MissionMessage(gameId, round, turn, JacksonUtils.toType(data, MissionMessage.MessageData.class));
+            }
+            case Message.Type.SpeakMessage -> {
+                return new SpeakMessage(gameId, round, turn, JacksonUtils.toType(data, SpeakMessage.MessageData.class));
             }
             case Message.Type.VoteMessage -> {
-                return new VoteMessage(gameId, JacksonUtils.toType(data, VoteMessage.MessageData.class));
+                return new VoteMessage(gameId, round, turn, JacksonUtils.toType(data, VoteMessage.MessageData.class));
             }
             default -> {
                 return null;

@@ -14,8 +14,8 @@ import java.util.stream.Collectors;
  */
 public class PercivalAIPlayer extends AIPlayer {
 
-    public PercivalAIPlayer(String gameId, int number, PlayerRole role, MessageService messageService, Map<Integer, PlayerRole> roles) {
-        super(gameId, number, role, messageService, roles);
+    public PercivalAIPlayer(String gameId, int number, PlayerRole role, Map<Integer, PlayerRole> roles, AIComponent aiComponent) {
+        super(gameId, number, role, roles, aiComponent);
     }
 
     @Override

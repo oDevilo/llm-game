@@ -11,8 +11,8 @@ import lombok.Getter;
 @Getter
 public class MissionMessage extends PlayerMessage<MissionMessage.MessageData> {
 
-    public MissionMessage(String gamId, MessageData data) {
-        super(gamId, data);
+    public MissionMessage(String gameId, Integer round, Integer turn, MessageData data) {
+        super(gameId, round, turn, data);
     }
 
     @Override

@@ -21,8 +21,8 @@ public class AskVoteMessage extends HostMessage {
         当前队伍由{{numbers}}号玩家组成，请所有人对当前车队进行投票
         """;
 
-    public AskVoteMessage(String gameId, MessageData data) {
-        super(gameId);
+    public AskVoteMessage(String gameId, Integer round, Integer turn, MessageData data) {
+        super(gameId, round, turn);
         this.data = data;
     }
 

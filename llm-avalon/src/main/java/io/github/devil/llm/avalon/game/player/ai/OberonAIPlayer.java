@@ -13,8 +13,8 @@ import java.util.Map;
  */
 public class OberonAIPlayer extends AIPlayer {
 
-    public OberonAIPlayer(String gameId, int number, PlayerRole role, MessageService messageService, Map<Integer, PlayerRole> roles) {
-        super(gameId, number, role, messageService, roles);
+    public OberonAIPlayer(String gameId, int number, PlayerRole role, Map<Integer, PlayerRole> roles, AIComponent aiComponent) {
+        super(gameId, number, role, roles, aiComponent);
     }
 
     @Override
@@ -26,8 +26,8 @@ public class OberonAIPlayer extends AIPlayer {
             # 角色设定
             你现在在参与一款名为阿瓦隆的身份类游戏，你是{{number}}号玩家，并作为里面的游戏角色`奥伯伦`参与到游戏中，请熟记游戏规则并尽最大可能保证`红方`胜利。
             
-            # 你的红方队友号码
-            {{playerNumbers}}
+            # 注意
+            - 不要随意暴露自己的红方身份，伪装成蓝方迷惑对手
             """).apply(variables).text();
         return SystemMessage.from(text);
     }

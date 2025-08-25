@@ -7,6 +7,7 @@ import io.github.devil.llm.avalon.game.GameState;
 import io.github.devil.llm.avalon.game.RoundState;
 import io.github.devil.llm.avalon.game.TurnState;
 import io.github.devil.llm.avalon.game.checkpoint.DBCheckpointSaver;
+import io.github.devil.llm.avalon.game.player.Player;
 import org.apache.commons.collections4.CollectionUtils;
 import org.bsc.langgraph4j.CompileConfig;
 import org.bsc.langgraph4j.CompiledGraph;
@@ -43,6 +44,9 @@ public class RoundService {
 
     @Resource
     private RoundEntityRepository roundEntityRepository;
+
+    @Resource
+    private PlayerService playerService;
 
     private CompiledGraph<RoundState> graph;
 
@@ -100,6 +104,8 @@ public class RoundService {
                     .build();
                 turnService.invoke(turn, config);
             }
+            // 进行一次分析
+            thinking(round.getGameId(), turn.getRound(), turn.getTurn());
 
             turn = turnService.current(round); // 重新获取最新状态
             switch (turn.getState()) {
@@ -122,6 +128,14 @@ public class RoundService {
             roundEntityRepository.saveAndFlush(Converter.toEntity(round));
             return RoundState.from(round); // 要更新的内容，不传递不会更新
         });
+    }
+
+    // 总结一下
+    private void thinking(String gameId, int round, int turn) {
+        List<Player> players = playerService.getById(gameId);
+        for (Player player : players) {
+            player.thinking(round, turn);
+        }
     }
 
     public List<RoundState.Round> historyRounds(GameState.Game game) {
